@@ -600,7 +600,7 @@ class HeatPump(Component):
             float(self.th_power
                   / self.get_current_cop(dataframe['temperature'][0])), 1)
 
-    def optimize_bivalent(self, heating_rod, mode, norm_temp, user_profile):
+    def optimize_bivalent(self, heating_rod, mode, norm_temp):
         """.
 
         Parameters
@@ -610,8 +610,6 @@ class HeatPump(Component):
         mode : TYPE
             DESCRIPTION.
         norm_temp : TYPE
-            DESCRIPTION.
-        user_profile : TYPE
             DESCRIPTION.
 
         Returns

@@ -10,13 +10,12 @@ from vpplib.user_profile import UserProfile
 from vpplib.environment import Environment
 from vpplib.heat_pump import HeatPump
 from vpplib.heating_rod import HeatingRod
-from fct_optimize_bivalent import optimize_bivalent
 from fct_run_hp_hr import run_hp_hr
 from fct_determin_heating_ratio import determin_heating_ratio
 import matplotlib.pyplot as plt
 import pandas as pd
 
-#Values for environment
+# Values for environment
 start = '2015-01-01 00:00:00'
 end = '2015-12-31 23:45:00'
 year = '2015'
@@ -27,18 +26,18 @@ timestamp_str1 = '2015-01-01 12:00:00'
 timestamp_str2 = '2015-01-10 06:00:00'
 timebase = 15
 
-#Values for user_profile
+# Values for user_profile
 thermal_energy_demand_yearly = 10000
 building_type = 'DE_HEF33'
 t_0 = 40
 
-#Values for Heatpump
-#el_power = 5 #kW electric
-ramp_up_time = 1 / 15 #timesteps
-ramp_down_time = 1 / 15 #timesteps
-min_runtime = 1 #timesteps
-min_stop_time = 2 #timesteps
-heat_pump_type = "Ground" #nur "Ground" oder "Air"!
+# Values for Heatpump
+# el_power = 5 #kW electric
+ramp_up_time = 1 / 15  # timesteps
+ramp_down_time = 1 / 15  # timesteps
+min_runtime = 1  # timesteps
+min_stop_time = 2  # timesteps
+heat_pump_type = "Ground"  # nur "Ground" oder "Air"!
 
 
 environment = Environment(timebase=timebase, start=start, end=end, year=year,
@@ -54,7 +53,7 @@ user_profile = UserProfile(identifier=None,
 
 
 def test_get_thermal_energy_demand(user_profile):
-    
+
     user_profile.get_thermal_energy_demand()
     user_profile.thermal_energy_demand.plot()
     plt.show()
@@ -65,26 +64,26 @@ test_get_thermal_energy_demand(user_profile)
 
 hp = HeatPump(identifier='hp',
               environment=environment, user_profile=user_profile,
-              #el_power=el_power,
+              # el_power=el_power,
               ramp_up_time=ramp_up_time,
-              ramp_down_time=ramp_down_time, heat_pump_type = heat_pump_type,
+              ramp_down_time=ramp_down_time, heat_pump_type=heat_pump_type,
               min_runtime=min_runtime,
               min_stop_time=min_stop_time)
 
-hr = HeatingRod(identifier='hr1', 
-                 environment=environment, user_profile = user_profile,
-                 #el_power = el_power,
-                 rampUpTime = ramp_up_time, 
-                 rampDownTime = ramp_down_time, 
-                 min_runtime = min_runtime, 
-                 min_stop_time = min_stop_time)
+hr = HeatingRod(identifier='hr1',
+                environment=environment, user_profile=user_profile,
+                #el_power = el_power,
+                rampUpTime=ramp_up_time,
+                rampDownTime=ramp_down_time,
+                min_runtime=min_runtime,
+                min_stop_time=min_stop_time)
 
 # parameters for running hp and hr
 norm_temp = -14.0    # biv_temp = -3.0
 mode = "parallel"
 
 # layout hr and hp
-optimize_bivalent(hp, hr, mode, norm_temp, user_profile)
+hp.optimize_bivalent(hr, mode, norm_temp)
 
 # show results of layout
 print("electrical power hp: " + str(hp.el_power) + "[kW]")
@@ -128,7 +127,7 @@ scop = th_output_hp / sum_dem_hp
 print("SCOP of heat pump: " + str(scop))
 
 print(str(data))
-data[:].plot(figsize = (16, 9))
+data[:].plot(figsize=(16, 9))
 plt.show()
 
-data.to_csv("./output/HP_ground_HR_eff1_parallel.csv")
+# data.to_csv("./output/HP_ground_HR_eff1_parallel.csv")
