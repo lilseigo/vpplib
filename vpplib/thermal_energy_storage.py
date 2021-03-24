@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
+""".
+
 Info
 ----
 This file contains the basic functionalities of the Component class.
 This is the mother class of all VPPx classes
-Verluste: Q_ps = 16,66 + 8,33*V^0,4
 
 """
 
@@ -13,44 +13,51 @@ from .component import Component
 
 
 class ThermalEnergyStorage(Component):
+    """.
 
-    #
-    def __init__(self, unit="kWh", identifier=None,
-                 environment=None, user_profile=None, cost=None,
-                 target_temperature=60, hysteresis=3, mass=300, cp=4.2):
-        """
-        Info
-        ----
-        ...
+    Info
+    ----
+    ...
 
-        Parameters
-        ----------
+    Parameters
+    ----------
+    The parameter timebase determines the resolution of the given data.
+    Furthermore the parameter environment (Environment) is given to
+    provide weather data and further external influences.
+    To account for different people using a component,
+    a use case (VPPUseCase) can be passed in to improve the simulation.
 
-        The parameter timebase determines the resolution of the given data.
-        Furthermore the parameter environment (Environment) is given to provide weather data and further external influences.
-        To account for different people using a component, a use case (VPPUseCase) can be passed in to improve the simulation.
+    Attributes
+    ----------
+    ...
 
-        Attributes
-        ----------
+    Notes
+    -----
+    ...
 
-        ...
+    References
+    ----------
+    ...
 
-        Notes
-        -----
+    Returns
+    -------
+    ...
 
-        ...
+    """
 
-        References
-        ----------
-
-        ...
-
-        Returns
-        -------
-
-        ...
-
-        """
+    def __init__(
+            self,
+            target_temperature,
+            hysteresis,
+            mass,
+            cp,
+            thermal_energy_loss_per_day,
+            unit,
+            identifier=None,
+            environment=None,
+            user_profile=None,
+            cost=None,
+    ):
 
         # Call to super class
         super(ThermalEnergyStorage, self).__init__(
@@ -69,19 +76,42 @@ class ThermalEnergyStorage(Component):
         self.hysteresis = hysteresis
         self.mass = mass
         self.density = 1
-        self.volumen = self.mass / self.density
+        self.volume = self.mass / self.density
         self.cp = cp
         self.state_of_charge = mass * cp * (self.current_temperature + 273.15)
         # Aus Datenblättern ergibt sich, dass ein Wärmespeicher je Tag rund 10%
         # Bereitschaftsverluste hat (ohne Rohrleitungen!!)
-        self.thermal_energy_loss_per_day = (
-            16.66 + 8.33 * pow(self.volumen, 0.4))/1000*24
-        self.thermal_energy_loss_per_timestep = 1 - (self.thermal_energy_loss_per_day /
-                                                     (24 * (60 / self.environment.timebase)))
+        self.thermal_energy_loss_per_day = thermal_energy_loss_per_day
+        self.efficiency_per_timestep = 1 - (
+            thermal_energy_loss_per_day
+            / (24 * (60 / self.environment.timebase))
+        )
+        # Approach below discharges storage just by means of losses...
+        # Thermal losses: Q_ps = 16,66 + 8,33*V^0,4
+        # self.thermal_energy_loss_per_day = (
+        #     16.66 + 8.33 * pow(self.volume, 0.4))/1000*24
+        # self.efficiency_per_timestep = 1 - (self.thermal_energy_loss_per_day /
+        #                                              (24 * (60 / self.environment.timebase)))
         self.needs_loading = None
 
     def operate_storage(self, timestamp, thermal_energy_generator):
+        """.
 
+        Parameters
+        ----------
+        timestamp : TYPE
+            DESCRIPTION.
+        thermal_energy_generator : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+        el_load : TYPE
+            DESCRIPTION.
+
+        """
         if self.get_needs_loading():
             thermal_energy_generator.ramp_up(timestamp)
         else:
@@ -97,7 +127,7 @@ class ThermalEnergyStorage(Component):
         #     <=> T = E / (m * cp)
         self.state_of_charge -= (thermal_energy_demand -
                                  thermal_production) * 1000 / (60/self.environment.timebase)
-        self.state_of_charge *= self.thermal_energy_loss_per_timestep
+        self.state_of_charge *= self.efficiency_per_timestep
         self.current_temperature = (
             self.state_of_charge / (self.mass * self.cp)) - 273.15
 
@@ -385,7 +415,6 @@ class ThermalEnergyStorageEfficiencies(Component):
         hysteresis,
         mass,
         cp,
-        # thermal_energy_loss_per_day,
         efficiency_class,
         unit,
         identifier=None,
@@ -395,7 +424,7 @@ class ThermalEnergyStorageEfficiencies(Component):
     ):
 
         # Call to super class
-        super(ThermalEnergyStorage, self).__init__(
+        super(ThermalEnergyStorageEfficiencies, self).__init__(
             unit, environment, user_profile, cost
         )
 
@@ -413,9 +442,10 @@ class ThermalEnergyStorageEfficiencies(Component):
             ),
         )
 
-        self.efficiencies_data_APlus = [20.6, 25.4, 28.9, 31.8, 34.4, 36.4, 38.4,
-                                        40.2, 41.9, 43.5, 44.9, 46.3, 47.7, 48.9,
-                                        50.1, 51.3, 52.4, 53.5, 54.6, 55.6]
+        self.efficiencies_data_APlus = [20.6, 25.4, 28.9, 31.8, 34.4, 36.4,
+                                        38.4, 40.2, 41.9, 43.5, 44.9, 46.3,
+                                        47.7, 48.9, 50.1, 51.3, 52.4, 53.5,
+                                        54.6, 55.6]
 
         self.efficiencies_data_A = [28.8, 35.3, 40.0, 43.9, 47.2, 50.1, 52.8,
                                     55.2, 57.4, 59.5, 61.5, 63.4, 65.2, 66.9,
