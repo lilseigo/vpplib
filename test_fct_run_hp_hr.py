@@ -10,10 +10,7 @@ from vpplib.user_profile import UserProfile
 from vpplib.environment import Environment
 from vpplib.heat_pump import HeatPump
 from vpplib.heating_rod import HeatingRod
-from fct_run_hp_hr import run_hp_hr
-from fct_determin_heating_ratio import determin_heating_ratio
 import matplotlib.pyplot as plt
-import pandas as pd
 
 # Values for environment
 start = '2015-01-01 00:00:00'
@@ -64,7 +61,6 @@ test_get_thermal_energy_demand(user_profile)
 
 hp = HeatPump(identifier='hp',
               environment=environment, user_profile=user_profile,
-              # el_power=el_power,
               ramp_up_time=ramp_up_time,
               ramp_down_time=ramp_down_time, heat_pump_type=heat_pump_type,
               min_runtime=min_runtime,
@@ -72,7 +68,6 @@ hp = HeatPump(identifier='hp',
 
 hr = HeatingRod(identifier='hr1',
                 environment=environment, user_profile=user_profile,
-                #el_power = el_power,
                 rampUpTime=ramp_up_time,
                 rampDownTime=ramp_down_time,
                 min_runtime=min_runtime,
@@ -90,12 +85,9 @@ print("electrical power hp: " + str(hp.el_power) + "[kW]")
 print("electrical power hr: " + str(hr.el_power) + "[kW]")
 print("thermal power hp: " + str(hp.th_power) + "[kW]")
 
-data = run_hp_hr(hp, hr, mode, user_profile, norm_temp)
-ratio = determin_heating_ratio(data)
+data = hp.run_hp_hr(hr, mode, norm_temp)
+ratio = hr.determin_heating_ratio(data)
 print("share of heating rod: " + (str(ratio * 100)) + " %")
-
-#i_data = pd.concat([data.th_output_hp, data.thermal_energy_demand], axis = 1)
-
 
 th_output_hp = data.th_output_hp.sum() / 4
 th_output_hr = data.th_output_hr.sum() / 4
