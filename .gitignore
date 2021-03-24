@@ -14,7 +14,9 @@ vpplib/__pycache__/
 .ipynb_checkpoints/
 dist/
 vpplib.egg-info/
-
+build/
+input/
+simses.log
 # Icon must end with two \r
 Icon
 
