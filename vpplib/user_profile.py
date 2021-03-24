@@ -94,6 +94,16 @@ class UserProfile(object):
         self.mean_temp_quarter_hours.index = pd.to_datetime(
                 self.mean_temp_quarter_hours.index)
         
+        self.mean_ground_temp_hours = pd.read_csv(
+                "./input/thermal/pik_temp_days_ground_2015.csv" , index_col="time")
+        self.mean_ground_temp_hours.index = pd.to_datetime(self.mean_ground_temp_hours.index)
+        
+        self.mean_ground_temp_quarter_hours = pd.read_csv(
+                "./input/thermal/pik_temp_15min_ground_2015.csv", index_col="time")
+        self.mean_ground_temp_quarter_hours.index = pd.to_datetime(
+                self.mean_ground_temp_quarter_hours.index)
+        
+        
         self.demand_daily = pd.read_csv("./input/thermal/demand_daily.csv")
         self.t_0 = t_0  #°C
         
@@ -556,3 +566,8 @@ class UserProfile(object):
         self.thermal_energy_demand.interpolate(inplace=True)
         
         return self.thermal_energy_demand
+    
+    #%% further functions
+    
+    def get_maximum_thermal_demand(self):
+        return self.thermal_energy_demand.max()

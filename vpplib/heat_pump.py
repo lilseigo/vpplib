@@ -14,11 +14,12 @@ class HeatPump(Component):
     def __init__(self, unit="kW", identifier=None,
                  environment=None, user_profile=None,
                  cost=None,
-                 heat_pump_type="Air",
+                 heat_pump_type= None,
                  heat_sys_temp=60,
                  el_power=None, th_power=None,
                  ramp_up_time=0, ramp_down_time=0,
-                 min_runtime=0, min_stop_time=0):
+                 min_runtime=0, min_stop_time=0,
+                 storage = None):
         
         """
         Info
@@ -64,6 +65,8 @@ class HeatPump(Component):
         self.el_power = el_power
         self.th_power = th_power
         self.limit = 1
+        #self.heat_source = "environment"
+        #self.storage = storage
         
         #Ramp parameters
         self.ramp_up_time = ramp_up_time
@@ -86,6 +89,12 @@ class HeatPump(Component):
         self.heat_sys_temp = heat_sys_temp
         
         self.is_running = False
+        
+        
+    def set_heat_source(self, heat_source):
+        if heat_source not in ["environment", "solar_thermal", "lts"]:
+            raise ValueError("heat source needs to be 'environment', 'solar_thermal' or 'lts'.")
+        self.heat_source = heat_source
               
     
     def get_cop(self):
@@ -124,6 +133,9 @@ class HeatPump(Component):
         if len(self.environment.mean_temp_hours) == 0:
             self.environment.get_mean_temp_hours()
             
+        if len(self.environment.mean_ground_temp_hours) == 0:
+            self.environment.get_mean_ground_temp_hours()
+            
         cop_lst = []
         
         if self.heat_pump_type == "Air":
@@ -133,7 +145,7 @@ class HeatPump(Component):
                 cop_lst.append(cop)
         
         elif self.heat_pump_type == "Ground":
-            for i, tmp in self.environment.mean_temp_hours.iterrows():
+            for i, tmp in self.environment.mean_ground_temp_hours.iterrows():
                 cop = (8.77 - 0.15 * (self.heat_sys_temp - tmp)
                        + 0.000734 * (self.heat_sys_temp - tmp)**2)
                 cop_lst.append(cop)
@@ -197,6 +209,23 @@ class HeatPump(Component):
             return -9999
 
         return cop
+    
+
+    # def get_current_cop_alt(self, tmp):
+
+    #     if self.heat_pump_type == "Air":
+    #         cop = (6.81 - 0.121 * (self.heat_sys_temp - tmp)
+    #                    + 0.00063 * (self.heat_sys_temp - tmp)**2)
+        
+    #     elif self.heat_pump_type == "Ground":
+    #         cop = (8.77 - 0.15 * (self.heat_sys_temp - tmp)
+    #                    + 0.000734 * (self.heat_sys_temp - tmp)**2)
+        
+    #     else:
+    #         print("Heatpump type is not defined")
+    #         return -9999
+
+    #     return cop
      
     #from VPPComponents
     def prepare_time_series(self):
@@ -354,7 +383,10 @@ class HeatPump(Component):
                 
                 if self.is_running:
                     el_demand = self.el_power
-                    temp = self.user_profile.mean_temp_quarter_hours.temperature.iloc[timestamp]
+                    if self.heat_pump_type == "Air":
+                        temp = self.user_profile.mean_temp_quarter_hours.temperature.iloc[timestamp]
+                    if self.heat_pump_type == "Ground":
+                        temp = self.user_profile.mean_ground_temp_quarter_hours.ground_temperature.iloc[timestamp]
                     cop = self.get_current_cop(temp)                   
                     thermal_energy_output = el_demand * cop
                 else: 
@@ -369,7 +401,10 @@ class HeatPump(Component):
                 
                 if self.is_running:
                     el_demand = self.el_power
-                    temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[timestamp]
+                    if self.heat_pump_type == "Air":
+                        temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[timestamp]
+                    if self.heat_pump_type == "Ground":
+                        temp = self.user_profile.mean_ground_temp_quarter_hours.ground_temperature.loc[timestamp]
                     cop = self.get_current_cop(temp)                   
                     thermal_energy_output = el_demand * cop
                 else: 
@@ -385,7 +420,10 @@ class HeatPump(Component):
                 
                 if self.is_running:
                     el_demand = self.el_power
-                    temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[str(timestamp)]
+                    if self.heat_pump_type == "Air":
+                        temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[str(timestamp)]
+                    if self.heat_pump_type == "Ground":
+                        temp = self.user_profile.mean_ground_temp_quarter_hours.ground_temperature.loc[str(timestamp)]
                     cop = self.get_current_cop(temp)                   
                     thermal_energy_output = el_demand * cop
                 else: 
@@ -538,3 +576,27 @@ class HeatPump(Component):
                 return True
             else: 
                 return False
+            
+#%% further functions 
+
+#------------------------------------------------------------------------------              
+# function to determine optimum thermal power of the heat pump according to
+# given heat demand
+#------------------------------------------------------------------------------
+                
+    def determine_optimum_thermal_power(self):
+# =============================================================================
+#         self.th_power = float(self.user_profile.thermal_energy_demand.max())
+#         self.th_power_realistic = int(self.user_profile.thermal_energy_demand.max())+1
+#         # muss durch den COP, welcher bei der höchsten Wärmebedarf (kältester Zeitpunkt) herrscht, geteilt werden
+#         self.el_power = self.th_power / self.get_current_cop(1)
+# =============================================================================
+        th_demand = self.user_profile.thermal_energy_demand
+        temps = pd.read_csv("./input/thermal/dwd_temp_15min_2015.csv",
+                                  index_col="time")
+        
+        dataframe = pd.concat([th_demand, temps], axis = 1)
+        dataframe.sort_values(by = ['thermal_energy_demand'], ascending = False, inplace = True)
+        
+        self.th_power = round(float(dataframe['thermal_energy_demand'][0]), 1)
+        self.el_power = round(float(self.th_power / self.get_current_cop(dataframe['temperature'][0])), 1)
