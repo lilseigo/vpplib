@@ -2,7 +2,7 @@
 """
 Info
 ----
-In this testfile the basic functionalities of the VPPHeatPump class are tested.
+In this testfile the basic functionalities of the VPPHeatingRod class are tested.
 Run each time you make changes on an existing function.
 Adjust if a new function is added or 
 parameters in an existing function are changed.
@@ -72,13 +72,13 @@ def test_prepareTimeseries(hr):
 def test_valueForTimestamp(hr, timestamp):
     
     print('valueForTimestamp:')
-    demand= hr.valueForTimestamp(timestamp)
+    demand= hr.value_for_timestamp(timestamp)
     print("El. Demand: ",demand, '\n')
     
 def test_observationsForTimestamp(hr, timestamp):
     
     print('observationsForTimestamp:')
-    observation = hr.observationsForTimestamp(timestamp)
+    observation = hr.observations_for_timestamp(timestamp)
     print(observation, '\n')
   
 test_prepareTimeseries(hr)  
@@ -88,3 +88,8 @@ test_observationsForTimestamp(hr, timestamp_int)
 
 test_valueForTimestamp(hr, timestamp_str)
 test_observationsForTimestamp(hr, timestamp_str)
+
+sum_el_dem = hr.timeseries["el_demand"].sum() * 0.25
+print("electrical demand hr: " + str(sum_el_dem) + " [kWh]")
+
+hr.timeseries.to_csv("./input/pv/HR_eff1.csv")

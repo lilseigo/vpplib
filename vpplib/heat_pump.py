@@ -32,32 +32,32 @@ class HeatPump(Component):
         Info
         ----
         ...
-        
+
         Parameters
         ----------
-        
+
         ...
-        	
+
         Attributes
         ----------
-        
+
         ...
-        
+
         Notes
         -----
-        
+
         ...
-        
+
         References
         ----------
-        
+
         ...
-        
+
         Returns
         -------
-        
+
         ...
-        
+
         """
 
         # Call to super class
@@ -72,6 +72,8 @@ class HeatPump(Component):
         self.el_power = el_power
         self.th_power = th_power
         self.limit = 1
+        #self.heat_source = "environment"
+        #self.storage = storage
 
         # Ramp parameters
         self.ramp_up_time = ramp_up_time
@@ -99,41 +101,49 @@ class HeatPump(Component):
 
         self.is_running = False
 
-    def get_cop(self):
+    def set_heat_source(self, heat_source):
+        if heat_source not in ["environment", "solar_thermal", "lts"]:
+            raise ValueError(
+                "heat source needs to be 'environment', 'solar_thermal' or 'lts'.")
+        self.heat_source = heat_source
 
+    def get_cop(self):
         """
         Info
         ----
         Calculate COP of heatpump according to heatpump type
-        
+
         Parameters
         ----------
-        
+
         ...
-        	
+
         Attributes
         ----------
-        
+
         ...
-        
+
         Notes
         -----
-        
+
         ...
-        
+
         References
         ----------
-        
+
         ...
-        
+
         Returns
         -------
-        
+
         ...
-        
+
         """
         if len(self.environment.mean_temp_hours) == 0:
             self.environment.get_mean_temp_hours()
+
+        if len(self.environment.mean_ground_temp_hours) == 0:
+            self.environment.get_mean_ground_temp_hours()
 
         cop_lst = []
 
@@ -147,12 +157,9 @@ class HeatPump(Component):
                 cop_lst.append(cop)
 
         elif self.heat_pump_type == "Ground":
-            for i, tmp in self.environment.mean_temp_hours.iterrows():
-                cop = (
-                    8.77
-                    - 0.15 * (self.heat_sys_temp - tmp)
-                    + 0.000734 * (self.heat_sys_temp - tmp) ** 2
-                )
+            for i, tmp in self.environment.mean_ground_temp_hours.iterrows():
+                cop = (8.77 - 0.15 * (self.heat_sys_temp - tmp)
+                       + 0.000734 * (self.heat_sys_temp - tmp)**2)
                 cop_lst.append(cop)
 
         else:
@@ -169,37 +176,36 @@ class HeatPump(Component):
         return self.cop
 
     def get_current_cop(self, tmp):
-
         """
         Info
         ----
         Calculate COP of heatpump according to heatpump type
-        
+
         Parameters
         ----------
-        
+
         ...
-        	
+
         Attributes
         ----------
-        
+
         ...
-        
+
         Notes
         -----
-        
+
         ...
-        
+
         References
         ----------
-        
+
         ...
-        
+
         Returns
         -------
-        
+
         ...
-        
+
         """
 
         if self.heat_pump_type == "Air":
@@ -283,39 +289,38 @@ class HeatPump(Component):
     # Controlling functions
     # =========================================================================
     def limit_power_to(self, limit):
-
         """
         Info
         ----
         This function limits the power of the heatpump to the given percentage.
-        It cuts the current power production down to the peak power multiplied 
+        It cuts the current power production down to the peak power multiplied
         by the limit (Float [0;1]).
-        
+
         Parameters
         ----------
-        
+
         ...
-        	
+
         Attributes
         ----------
-        
+
         ...
-        
+
         Notes
         -----
-        
+
         ...
-        
+
         References
         ----------
-        
+
         ...
-        
+
         Returns
         -------
-        
+
         ...
-        
+
         """
 
         # Validate input parameter
@@ -352,44 +357,43 @@ class HeatPump(Component):
             )
 
     def observations_for_timestamp(self, timestamp):
-
         """
         Info
         ----
-        This function takes a timestamp as the parameter and returns a 
-        dictionary with key (String) value (Any) pairs. 
-        Depending on the type of component, different status parameters of the 
-        respective component can be queried. 
-        
+        This function takes a timestamp as the parameter and returns a
+        dictionary with key (String) value (Any) pairs.
+        Depending on the type of component, different status parameters of the
+        respective component can be queried.
+
         For example, a power store can report its "State of Charge".
-        Returns an empty dictionary since this function needs to be 
+        Returns an empty dictionary since this function needs to be
         implemented by child classes.
-        
+
         Parameters
         ----------
-        
+
         ...
-        	
+
         Attributes
         ----------
-        
+
         ...
-        
+
         Notes
         -----
-        
+
         ...
-        
+
         References
         ----------
-        
+
         ...
-        
+
         Returns
         -------
-        
+
         ...
-        
+
         """
         if type(timestamp) == int:
 
@@ -477,8 +481,7 @@ class HeatPump(Component):
         self.timeseries.el_demand.loc[timestamp] = observation["el_demand"]
 
         return self.timeseries
-
-    #%% ramping functions
+    # %% ramping functions
 
     def is_valid_ramp_up(self, timestamp):
 
@@ -537,32 +540,32 @@ class HeatPump(Component):
             - None:       Ramp up has no effect since the combined heat and power plant is already running
             - True:       Ramp up was successful
             - False:      Ramp up was not successful (due to constraints for minimum running and stop times)
-        
+
         Parameters
         ----------
-        
+
         ...
-        	
+
         Attributes
         ----------
-        
+
         ...
-        
+
         Notes
         -----
-        
+
         ...
-        
+
         References
         ----------
-        
+
         ...
-        
+
         Returns
         -------
-        
+
         ...
-        
+
         """
         if self.is_running:
             return None
@@ -574,44 +577,41 @@ class HeatPump(Component):
                 return False
 
     def ramp_down(self, timestamp):
+        """.
 
-        """
         Info
         ----
-        This function ramps down the combined heat and power plant. The timestamp is neccessary to calculate
-        if the combined heat and power plant is running in later iterations of balancing. The possible
+        This function ramps down the combined heat and power plant.
+        The timestamp is neccessary to calculate if the combined heat and
+        power plant is running in later iterations of balancing. The possible
         return values are:
-            - None:       Ramp down has no effect since the combined heat and power plant is not running
+            - None:       Ramp down has no effect since the combined heat and
+                            power plant is not running
             - True:       Ramp down was successful
-            - False:      Ramp down was not successful (due to constraints for minimum running and stop times)
-        
+            - False:      Ramp down was not successful
+                        (due to constraints for minimum running and stop times)
+
         Parameters
         ----------
-        
         ...
-        	
+
         Attributes
         ----------
-        
         ...
-        
+
         Notes
         -----
-        
         ...
-        
+
         References
         ----------
-        
         ...
-        
+
         Returns
         -------
-        
         ...
-        
-        """
 
+        """
         if not self.is_running:
             return None
         else:
@@ -620,3 +620,252 @@ class HeatPump(Component):
                 return True
             else:
                 return False
+
+# %% further functions
+
+    def determine_optimum_thermal_power(self):
+        """.
+
+        Function to determine optimum thermal power of the heat pump according
+        to a given heat demand
+
+        Returns
+        -------
+        None.
+
+        """
+        th_demand = self.user_profile.thermal_energy_demand
+        temps = pd.read_csv("./input/thermal/dwd_temp_15min_2015.csv",
+                            index_col="time")
+
+        dataframe = pd.concat([th_demand, temps], axis=1)
+        dataframe.sort_values(
+            by=['thermal_energy_demand'], ascending=False, inplace=True)
+
+        self.th_power = round(float(dataframe['thermal_energy_demand'][0]), 1)
+        self.el_power = round(
+            float(self.th_power
+                  / self.get_current_cop(dataframe['temperature'][0])), 1)
+
+    def optimize_bivalent(self, heating_rod, mode, norm_temp):
+        """.
+
+        Parameters
+        ----------
+        heating_rod : TYPE
+            DESCRIPTION.
+        mode : TYPE
+            DESCRIPTION.
+        norm_temp : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        if mode not in ["parallel", "alternative"]:
+            print("error: mode needs to be \"parallel\" or \"alternative\"")
+
+    # =============================================================================
+    #     if type(heat_pump) != HeatPump:
+    #         print("error: heat_pump needs to be of type HeatPump")
+    #
+    #     if type(heating_rod) != HeatingRod:
+    #         print("error: heating_rod needs to be of type HeatingRod")
+    # =============================================================================
+
+    # =============================================================================
+    #     if user_profile.thermal_energy_demand == None:
+    #         user_profile.get_thermal_energy_demand()
+    # =============================================================================
+
+        if norm_temp <= -16:
+            biv_temp = -4
+        elif (norm_temp > -16) & (norm_temp <= -10):
+            biv_temp = -3
+        elif norm_temp > -10:
+            biv_temp = -2
+
+        heat_demand = self.user_profile.get_thermal_energy_demand()
+        temperature = pd.read_csv(
+            "./input/thermal/dwd_temp_15min_2015.csv", index_col="time")
+
+        # get point p0 (lowest temperature and corresponding (highest) heat demand)
+        T_p0 = round(float(temperature['temperature'].min()), 1)
+        P_p0 = round(float(heat_demand['thermal_energy_demand'].max()), 1)
+
+        # get point p1 (heatstop temperature (20°C) and corrsponding (0kW) heat demand)
+        T_p1 = 20   # choose reasonable value
+        P_p1 = round(float(heat_demand['thermal_energy_demand'].min()), 1)
+
+        # assume linear function P(T)=a*T+b between p0 and p1
+        # calculate parameter a: gradient triangle
+        a = (P_p1 - P_p0) / (T_p1 - T_p0)
+
+        # calculate parameter b: b=P(T)-a*T
+        b = 0 - a * 20  # Annahme bei 20 Grad keine Energie für Raumwärme notwendig
+
+        # bivalence temerature (determine with tabels in Vaillant hand book)
+        T_biv = biv_temp
+
+        # calculate corresponding heat demand (equals thermal power of heat pump)
+        P_biv = a * T_biv + b
+        # print(str(P_biv))
+        self.th_power = round(float(P_biv), 1)  # * 1.3
+
+        self.el_power = self.th_power / self.get_current_cop(T_biv)
+        th_power_hp_coldest = self.el_power * self.get_current_cop(norm_temp)
+
+        if mode == "parallel":
+            heating_rod.el_power = round(
+                float((P_p0 - th_power_hp_coldest)
+                      / heating_rod.efficiency), 1)
+
+        else:
+            heating_rod.el_power = round(
+                float(P_p0 / heating_rod.efficiency), 1)
+
+    def run_hp_hr(self, hr, mode, norm_temp):
+
+        # determine bivalence temperature according to norm_temperature
+        if norm_temp <= -16:
+            biv_temp = -4
+        elif (norm_temp > -16) & (norm_temp <= -10):
+            biv_temp = -3
+        elif norm_temp > -10:
+            biv_temp = -2
+
+        temp_air = pd.read_csv("./input/thermal/dwd_temp_15min_2015.csv",
+                               index_col="time")
+
+        # temperature and heat demand over time
+        heat_demand = self.user_profile.thermal_energy_demand
+        if self.heat_pump_type == "Air":
+            temperature = temp_air
+            dataframe = pd.concat([heat_demand, temperature], axis=1)
+        if self.heat_pump_type == "Ground":
+            temperature = pd.read_csv("./input/thermal/pik_temp_15min_ground_2015.csv",
+                                      index_col="time")
+            dataframe = pd.concat([heat_demand, temperature, temp_air], axis=1)
+
+        # times where actual temp is below bivalence temp
+        filter_temp = dataframe['temperature'] < biv_temp
+        bools_temp = filter_temp.values
+        filter_temp = pd.DataFrame(data=bools_temp, columns=['t below t_biv'],
+                                   index=dataframe.index)
+
+        dataframe = pd.concat([dataframe, filter_temp], axis=1)
+
+        output_hp = []
+        demand_hp = []
+
+        output_hr = []
+        demand_hr = []
+
+        cops_hp = []
+
+        hp_capable = []
+        hr_working = []
+
+        # to iterate over
+        th_energy_demand = dataframe['thermal_energy_demand'].values
+        if self.heat_pump_type == "Ground":
+            temperature = dataframe['ground_temperature'].values
+        if self.heat_pump_type == "Air":
+            temperature = dataframe['temperature'].values
+
+        # parallel mode
+        if mode == "parallel":
+            for i in range(len(dataframe)):
+                # thermal output hp
+                curr_th_power_hp = self.el_power * \
+                    self.get_current_cop(temperature[i])
+                if th_energy_demand[i] <= curr_th_power_hp:
+                    output_hp.append(th_energy_demand[i])
+                    hp_capable.append(True)
+                else:
+                    output_hp.append(curr_th_power_hp)
+                    hp_capable.append(False)
+
+            for i in range(len(dataframe)):
+                # thermal output hr
+                if bools_temp[i] or not hp_capable[i]:
+                    diff = th_energy_demand[i] - output_hp[i]
+                    if diff <= hr.el_power * hr.efficiency:
+                        output_hr.append(diff)
+                    else:
+                        output_hr.append(hr.el_power * hr.efficiency)
+                else:
+                    output_hr.append(0)
+
+        # alternative mode
+        if mode == "alternative":
+            # determine heat pump thermal output
+            # (heat pump running if t >= t_biv)
+            for i in range(len(dataframe)):
+                if bools_temp[i] is False:
+                    curr_th_power_hp = self.el_power * \
+                        self.get_current_cop(temperature[i])
+                    if th_energy_demand[i] <= curr_th_power_hp:
+                        output_hp.append(th_energy_demand[i])
+                        hp_capable.append(True)
+                    else:
+                        # hp.el_power * hp.get_current_cop(temperature[i]))
+                        output_hp.append(curr_th_power_hp)
+                        hp_capable.append(False)
+                else:
+                    output_hp.append(0)
+                    hp_capable.append(False)
+
+            # determine heating rod thermal output
+            for i in range(len(dataframe)):
+                if bools_temp[i]:
+                    if th_energy_demand[i] <= hr.el_power * hr.efficiency:
+                        output_hr.append(th_energy_demand[i])
+                        hr_working.append(True)
+                    else:
+                        output_hr.append(hr.el_power * hr.efficiency)
+                        hr_working.append(True)
+                else:
+                    output_hr.append(0)
+                    hr_working.append(False)
+
+            for i in range(len(dataframe)):
+                if not hp_capable[i] or not hr_working[i]:
+                    diff = th_energy_demand[i] - output_hp[i]
+                    if diff <= hr.el_power * hr.efficiency:
+                        output_hr[i] = diff
+                    else:
+                        output_hr[i] = hr.el_power * hr.efficiency
+
+        th_output_hp = pd.DataFrame(data=output_hp, columns=['th_output_hp'],
+                                    index=dataframe.index)
+
+        th_output_hr = pd.DataFrame(data=output_hr, columns=['th_output_hr'],
+                                    index=dataframe.index)
+
+        dataframe = pd.concat([dataframe, th_output_hp, th_output_hr], axis=1)
+
+        # determine electrical demand of heat pump and heating rod
+        for i in range(len(dataframe)):
+            demand_hp.append(
+                output_hp[i] / self.get_current_cop(temperature[i]))
+            demand_hr.append(output_hr[i] / hr.efficiency)
+
+        el_demand_hp = pd.DataFrame(data=demand_hp, columns=['el_demand_hp'],
+                                    index=dataframe.index)
+
+        el_demand_hr = pd.DataFrame(data=demand_hr, columns=['el_demand_hr'],
+                                    index=dataframe.index)
+
+        for i in range(len(dataframe)):
+            cops_hp.append(self.get_current_cop(temperature[i]))
+
+        cops = pd.DataFrame(data=cops_hp, columns=[
+                            'cop'], index=dataframe.index)
+
+        dataframe = pd.concat(
+            [dataframe, el_demand_hp, el_demand_hr, cops], axis=1)
+
+        return dataframe

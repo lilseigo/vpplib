@@ -8,6 +8,7 @@ This file contains the basic functionalities of the VPPHeatPump class.
 import pandas as pd
 from .component import Component
 
+
 class HeatingRod(Component):
     
     def __init__(self, unit="kW", identifier=None,
@@ -27,8 +28,8 @@ class HeatingRod(Component):
         self.efficiency = efficiency
         self.el_power = el_power
         self.limit = 1
-        
-        #Ramp parameters
+
+        # Ramp parameters
         self.rampUpTime = rampUpTime
         self.rampDownTime = rampDownTime
         self.min_runtime = min_runtime
@@ -37,8 +38,8 @@ class HeatingRod(Component):
         self.lastRampDown = self.user_profile.thermal_energy_demand.index[0]
 
         self.timeseries_year = pd.DataFrame(
-                columns=["heat_output", "efficiency", "el_demand"], 
-                index=self.user_profile.thermal_energy_demand.index)
+            columns=["thermal_energy_output", "efficiency", "el_demand"],
+            index=self.user_profile.thermal_energy_demand.index)
         self.timeseries = pd.DataFrame(
                 columns=["heat_output", "efficiency", "el_demand"], 
                 index=pd.date_range(start=self.environment.start, 
@@ -47,98 +48,17 @@ class HeatingRod(Component):
                                     name="time"))
 
 #        self.heat_sys_temp = heat_sys_temp
-        
-        self.isRunning = False
-              
-   
-# =============================================================================
-#     def get_cop(self):
-#     
-#         if len(self.environment.mean_temp_hours) == 0:
-#             self.environment.get_mean_temp_hours()
-#             
-#         cop_lst = []
-#         
-#         if self.heatpump_type == "Air":
-#             for i, tmp in self.environment.mean_temp_hours.iterrows():
-#                 cop = (6.81 - 0.121 * (self.heat_sys_temp - tmp)
-#                        + 0.00063 * (self.heat_sys_temp - tmp)**2)
-#                 cop_lst.append(cop)
-#         
-#         elif self.heatpump_type == "Ground":
-#             for i, tmp in self.environment.mean_temp_hours.iterrows():
-#                 cop = (8.77 - 0.15 * (self.heat_sys_temp - tmp)
-#                        + 0.000734 * (self.heat_sys_temp - tmp)**2)
-#                 cop_lst.append(cop)
-#         
-#         else:
-#             raise ValueError("Heatpump type is not defined!")
-#         
-#         self.cop = pd.DataFrame(
-#                 data = cop_lst, 
-#                 index = pd.date_range(self.environment.year, periods=8760, 
-#                                       freq = "H", name="time"))
-#         self.cop.columns = ['cop']
-#         
-#         return self.cop  
-#     
-#     def get_current_cop(self, tmp):
-#         
-#         """
-#         Info
-#         ----
-#         Calculate COP of heatpump according to heatpump type
-#         
-#         Parameters
-#         ----------
-#         
-#         ...
-#         	
-#         Attributes
-#         ----------
-#         
-#         ...
-#         
-#         Notes
-#         -----
-#         
-#         ...
-#         
-#         References
-#         ----------
-#         
-#         ...
-#         
-#         Returns
-#         -------
-#         
-#         ...
-#         
-#         """
-#         
-#         
-#         if self.heatpump_type == "Air":
-#             cop = (6.81 - 0.121 * (self.heat_sys_temp - tmp)
-#                        + 0.00063 * (self.heat_sys_temp - tmp)**2)
-#         
-#         elif self.heatpump_type == "Ground":
-#             cop = (8.77 - 0.15 * (self.heat_sys_temp - tmp)
-#                        + 0.000734 * (self.heat_sys_temp - tmp)**2)
-#         
-#         else:
-#             print("Heatpump type is not defined")
-#             return -9999
-# 
-#         return cop
-# =============================================================================
-     
-    #from VPPComponents
+
+        self.is_running = False
+
+    # from VPPComponents
+
     def prepareTimeSeries(self):
             
         if pd.isna(next(iter(self.user_profile.thermal_energy_demand.thermal_energy_demand))) == True:
             self.user_profile.get_thermal_energy_demand()
-          
-        if pd.isna(next(iter(self.timeseries_year.heat_output))) == True:
+
+        if pd.isna(next(iter(self.timeseries_year.thermal_energy_output))) == True:
             self.get_timeseries_year()
         
         self.timeseries = self.timeseries_year.loc[self.environment.start:self.environment.end]
@@ -146,19 +66,18 @@ class HeatingRod(Component):
         return self.timeseries
     
     def get_timeseries_year(self):
-        
-        self.timeseries_year["heat_output"] = self.user_profile.thermal_energy_demand
-        self.timeseries_year["el_demand"] = (self.timeseries_year.heat_output / 
-                            self.efficiency)
-        
+
+        self.timeseries_year["thermal_energy_output"] = self.user_profile.thermal_energy_demand
+        self.timeseries_year["el_demand"] = (self.timeseries_year.thermal_energy_output /
+                                             self.efficiency)
+
         return self.timeseries_year
 
     # =========================================================================
     # Controlling functions
     # =========================================================================
     def limitPowerTo(self, limit):
-        
-        
+
         # Validate input parameter
         if limit >= 0 and limit <= 1:
 
@@ -166,7 +85,7 @@ class HeatingRod(Component):
             self.limit = limit
 
         else:
-        
+
             # Paramter is invalid
             return
 
@@ -175,7 +94,7 @@ class HeatingRod(Component):
     # =========================================================================
 
     # Override balancing function from super class.
-    def valueForTimestamp(self, timestamp):
+    def value_for_timestamp(self, timestamp):
 
         if type(timestamp) == int:
             
@@ -195,65 +114,66 @@ class HeatingRod(Component):
         if type(timestamp) == int:
             
             if pd.isna(next(iter(self.timeseries.iloc[timestamp]))) == False:
-                
-                heat_output, efficiency , el_demand = self.timeseries.iloc[timestamp]
-                
+
+                thermal_energy_output, efficiency, el_demand = self.timeseries.iloc[timestamp]
+
             else:
-                
-                if self.isRunning: 
+
+                if self.is_running:
                     el_demand = self.el_power
-                    temp = self.user_profile.mean_temp_quarter_hours.temperature.iloc[timestamp]
-                    efficiency = self.efficiency                   
-                    heat_output = el_demand * efficiency
-                else: 
-                    el_demand, efficiency, heat_output = 0, 0, 0
-            
+                    #temp = self.user_profile.mean_temp_quarter_hours.temperature.iloc[timestamp]
+                    efficiency = self.efficiency
+                    thermal_energy_output = el_demand * efficiency
+                else:
+                    el_demand, thermal_energy_output = 0, 0
+
         elif type(timestamp) == str:
             
             if pd.isna(next(iter(self.timeseries.loc[timestamp]))) == False:
-                
-                heat_output, efficiency , el_demand = self.timeseries.loc[timestamp]
+
+                thermal_energy_output, efficiency, el_demand = self.timeseries.loc[timestamp]
             else:
-                
-                if self.isRunning: 
+
+                if self.is_running:
                     el_demand = self.el_power
-                    temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[timestamp]
-                    efficiency = self.efficiency                  
-                    heat_output = el_demand * efficiency
-                else: 
-                    el_demand, efficiency, heat_output = 0, 0, 0
-                
+                    #temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[timestamp]
+                    efficiency = self.efficiency
+                    thermal_energy_output = el_demand * efficiency
+                else:
+                    el_demand, thermal_energy_output = 0, 0
+
         elif type(timestamp) == pd._libs.tslibs.timestamps.Timestamp:
             
             if pd.isna(next(iter(self.timeseries.loc[str(timestamp)]))) == False:
-                
-                 heat_output, efficiency , el_demand = self.timeseries.loc[str(timestamp)]
-                 
+
+                thermal_energy_output, efficiency, el_demand = self.timeseries.loc[str(
+                    timestamp)]
+
             else:
-                
-                if self.isRunning: 
+
+                if self.is_running:
                     el_demand = self.el_power
-                    temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[str(timestamp)]
-                    efficiency = self.efficiency                  
-                    heat_output = el_demand * efficiency
-                else: 
-                    el_demand, efficiency, heat_output = 0, 0, 0
-            
+                    #temp = self.user_profile.mean_temp_quarter_hours.temperature.loc[str(timestamp)]
+                    efficiency = self.efficiency
+                    thermal_energy_output = el_demand * efficiency
+                else:
+                    el_demand, thermal_energy_output = 0, 0
+
         else:
             raise ValueError("timestamp needs to be of type int, " +
                              "string (Stringformat: YYYY-MM-DD hh:mm:ss)" +
                              " or pd._libs.tslibs.timestamps.Timestamp")
-        
-        observations = {'heat_output':heat_output, 
-                        'efficiency':efficiency, 'el_demand':el_demand}
-        
+
+        observations = {
+            'thermal_energy_output': thermal_energy_output, 'el_demand': el_demand}
+
         return observations
 
     def log_observation(self, observation, timestamp):
-        
-        self.timeseries.heat_output.loc[timestamp] = observation["heat_output"]
+
+        self.timeseries.thermal_energy_output.loc[timestamp] = observation["thermal_energy_output"]
         self.timeseries.el_demand.loc[timestamp] = observation["el_demand"]
-        
+
         return self.timeseries
     #%% ramping functions
     
@@ -262,14 +182,16 @@ class HeatingRod(Component):
         
         if type(timestamp) == int:
             if timestamp - self.lastRampDown > self.min_stop_time:
-                self.isRunning = True
-            else: self.isRunning = False
-        
+                self.is_running = True
+            else:
+                self.is_running = False
+
         elif type(timestamp) == pd._libs.tslibs.timestamps.Timestamp:
             if self.lastRampDown + self.min_stop_time * timestamp.freq < timestamp:
-                self.isRunning = True
-            else: self.isRunning = False
-            
+                self.is_running = True
+            else:
+                self.is_running = False
+
         else:
             raise ValueError("timestamp needs to be of type int or " +
                              "pandas._libs.tslibs.timestamps.Timestamp")
@@ -278,40 +200,77 @@ class HeatingRod(Component):
         
         if type(timestamp) == int:
             if timestamp - self.lastRampUp > self.min_runtime:
-                self.isRunning = False
-            else: self.isRunning = True
-        
+                self.is_running = False
+            else:
+                self.is_running = True
+
         elif type(timestamp) == pd._libs.tslibs.timestamps.Timestamp:
             if self.lastRampUp + self.min_runtime * timestamp.freq < timestamp:
-                self.isRunning = False
-            else: self.isRunning = True
-            
+                self.is_running = False
+            else:
+                self.is_running = True
+
         else:
             raise ValueError("timestamp needs to be of type int or " +
                              "pandas._libs.tslibs.timestamps.Timestamp")
-        
-    def rampUp(self, timestamp):
-        
-        
-        if self.isRunning:
+
+    def ramp_up(self, timestamp):
+
+        if self.is_running:
             return None
         else:
             if self.isLegitRampUp(timestamp):
-                self.isRunning = True
+                self.is_running = True
                 return True
             else: 
                 return False
 
 
-    def rampDown(self, timestamp):
-        
-    
-
-        if not self.isRunning:
+        if not self.is_running:
             return None
         else:
             if self.isLegitRampDown(timestamp):
-                self.isRunning = False
+                self.is_running = False
                 return True
             else: 
                 return False
+
+# %%
+
+    def determin_heating_ratio(self, dataframe):
+        """.
+
+        function to determin the heating ratio.
+        heating ratio = amount of energy output by hr / yearly heating demand
+        argument passed is the dataframe wich is returned from
+        HeatPump.run_hp_hr()
+
+        Parameters
+        ----------
+        dataframe : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        heating_ratio : TYPE
+            DESCRIPTION.
+
+        """
+        heating_demand = dataframe['thermal_energy_demand'].values
+        sum_energy = 0
+        for i in range(len(dataframe)):
+            sum_energy += heating_demand[i]
+        # divide by 4 (because time steps are 1/4 hour)
+        # for correct result in [kWh]
+        sum_energy = sum_energy / 4
+
+        output_hr = dataframe['th_output_hr'].values
+        sum_output = 0
+        for i in range(len(dataframe)):
+            sum_output += output_hr[i]
+        # divide by 4 for correct result in [kWh]
+        sum_output = sum_output / 4
+
+        heating_ratio = sum_output / sum_energy
+
+        return heating_ratio

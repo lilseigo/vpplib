@@ -28,6 +28,17 @@ class Environment(object):
         wind_data=[],
     ):
 
+    def __init__(self, timebase=None, timezone='Europe/Berlin',
+                 start=None, end=None, year=None,
+                 time_freq="15 min",
+                 mean_temp_days=[], 
+                 mean_temp_hours=[],
+                 mean_ground_temp_days=[],
+                 mean_ground_temp_hours=[],
+                 mean_ground_temp_quarters=[],
+                 pv_data=[], 
+                 wind_data=[]):
+        
         """
         Info
         ----
@@ -69,6 +80,9 @@ class Environment(object):
         self.time_freq = time_freq
         self.mean_temp_days = mean_temp_days
         self.mean_temp_hours = mean_temp_hours
+        self.mean_ground_temp_days = mean_ground_temp_days
+        self.mean_ground_temp_hours = mean_ground_temp_hours
+        self.mean_ground_temp_quarters = mean_ground_temp_quarters
         self.pv_data = pv_data
         self.wind_data = wind_data
 
@@ -94,11 +108,31 @@ class Environment(object):
         self.mean_temp_hours = pd.read_csv(file, index_col="time")
 
         return self.mean_temp_hours
-
-    def get_wind_data(
-        self, file="./input/wind/dwd_wind_data_2015.csv", utc=False
-    ):
-
+    
+    def get_mean_ground_temp_days(self, file=
+                           "./input/thermal/pik_temp_days_ground_2015.csv"):
+        
+        self.mean_ground_temp_days = pd.read_csv(file, index_col="time")
+        
+        return self.mean_ground_temp_days
+    
+    def get_mean_ground_temp_hours(self, file = 
+                            "./input/thermal/pik_temp_hours_ground_2015.csv"):
+        
+        self.mean_ground_temp_hours = pd.read_csv(file, index_col="time")
+        
+        return self.mean_ground_temp_hours    
+        
+    def get_mean_ground_temp_quarters(self, file = 
+                            "./input/thermal/pik_temp_15min_ground_2015.csv"):
+        
+        self.mean_ground_temp_quarters = pd.read_csv("./input/thermal/pik_temp_15min_ground_2015.csv", index_col="time")
+        
+        return self.mean_ground_temp_quarters   
+        
+    def get_wind_data(self, file = "./input/wind/dwd_wind_data_2015.csv", 
+                      utc=False):
+        
         r"""
         Imports weather data from a file.
     
