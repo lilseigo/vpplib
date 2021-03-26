@@ -14,61 +14,51 @@ import pandas as pd
 
 
 class Environment(object):
-    def __init__(
-        self,
-        timebase=None,
-        timezone="Europe/Berlin",
-        start=None,
-        end=None,
-        year=None,
-        time_freq="15 min",
-        mean_temp_days=[],
-        mean_temp_hours=[],
-        pv_data=[],
-        wind_data=[],
-    ):
 
-    def __init__(self, timebase=None, timezone='Europe/Berlin',
-                 start=None, end=None, year=None,
+    def __init__(self,
+                 timebase=None,
+                 timezone='Europe/Berlin',
+                 start=None,
+                 end=None,
+                 year=None,
                  time_freq="15 min",
-                 mean_temp_days=[], 
+                 mean_temp_days=[],
                  mean_temp_hours=[],
                  mean_ground_temp_days=[],
                  mean_ground_temp_hours=[],
                  mean_ground_temp_quarters=[],
-                 pv_data=[], 
+                 pv_data=[],
                  wind_data=[]):
-        
         """
         Info
         ----
         ...
-        
+
         Parameters
         ----------
-        
+
         ...
-        	
+
         Attributes
         ----------
-        
+
         ...
-        
+
         Notes
         -----
-        
+
         ...
-        
+
         References
         ----------
-        
+
         ...
-        
+
         Returns
         -------
-        
+
         ...
-        
+
         """
 
         # Configure attribues
@@ -108,48 +98,45 @@ class Environment(object):
         self.mean_temp_hours = pd.read_csv(file, index_col="time")
 
         return self.mean_temp_hours
-    
-    def get_mean_ground_temp_days(self, file=
-                           "./input/thermal/pik_temp_days_ground_2015.csv"):
-        
+
+    def get_mean_ground_temp_days(self, file="./input/thermal/pik_temp_days_ground_2015.csv"):
+
         self.mean_ground_temp_days = pd.read_csv(file, index_col="time")
-        
+
         return self.mean_ground_temp_days
-    
-    def get_mean_ground_temp_hours(self, file = 
-                            "./input/thermal/pik_temp_hours_ground_2015.csv"):
-        
+
+    def get_mean_ground_temp_hours(self, file="./input/thermal/pik_temp_hours_ground_2015.csv"):
+
         self.mean_ground_temp_hours = pd.read_csv(file, index_col="time")
-        
-        return self.mean_ground_temp_hours    
-        
-    def get_mean_ground_temp_quarters(self, file = 
-                            "./input/thermal/pik_temp_15min_ground_2015.csv"):
-        
-        self.mean_ground_temp_quarters = pd.read_csv("./input/thermal/pik_temp_15min_ground_2015.csv", index_col="time")
-        
-        return self.mean_ground_temp_quarters   
-        
-    def get_wind_data(self, file = "./input/wind/dwd_wind_data_2015.csv", 
+
+        return self.mean_ground_temp_hours
+
+    def get_mean_ground_temp_quarters(self, file="./input/thermal/pik_temp_15min_ground_2015.csv"):
+
+        self.mean_ground_temp_quarters = pd.read_csv(
+            "./input/thermal/pik_temp_15min_ground_2015.csv", index_col="time")
+
+        return self.mean_ground_temp_quarters
+
+    def get_wind_data(self, file="./input/wind/dwd_wind_data_2015.csv",
                       utc=False):
-        
         r"""
         Imports weather data from a file.
-    
+
         The data include wind speed at two different heights in m/s, air
         temperature in two different heights in K, surface roughness length in m
         and air pressure in Pa. The file is located in the example folder of the
         windpowerlib. The height in m for which the data applies is specified in
         the second row.
-    
+
         Parameters
         ----------
         file : string
             Filename of the weather data file. Default: 'dwd_wind_data_2015.csv'.
-            
+
         utc : boolean
             Decide, weather to use utc conversion or not
-    
+
         Returns
         -------
         weather_df : pandas.DataFrame
@@ -160,7 +147,7 @@ class Environment(object):
                 contains the variable name as string (e.g. 'wind_speed') and the
                 second level contains the height as integer at which it applies
                 (e.g. 10, if it was measured at a height of 10 m).
-    
+
         """
 
         if utc == True:

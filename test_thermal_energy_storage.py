@@ -31,6 +31,7 @@ unit = "kWh"
 
 # Values for Heatpump
 el_power = 5  # kW electric
+th_power = 0
 ramp_up_time = 1 / 15  # timesteps
 ramp_down_time = 1 / 15  # timesteps
 min_runtime = 1  # timesteps
@@ -71,8 +72,12 @@ tes = ThermalEnergyStorage(environment=environment,
                            target_temperature=target_temperature)
 
 hp = HeatPump(identifier='hp1',
-              environment=environment, user_profile=user_profile,
-              el_power=el_power, ramp_up_time=ramp_up_time,
+              environment=environment,
+              user_profile=user_profile,
+              el_power=el_power,
+              th_power=th_power,
+              unit=unit,
+              ramp_up_time=ramp_up_time,
               ramp_down_time=ramp_down_time,
               min_runtime=min_runtime, heat_pump_type=type_hp,
               min_stop_time=min_stop_time,

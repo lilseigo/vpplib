@@ -408,7 +408,7 @@ class ThermalEnergyStorageEfficiencies(Component):
         self.state_of_charge *= self.efficiency_per_timestep
         self.current_temperature = (
             self.state_of_charge
-#            * 3600  # kWh to KJ
+            #            * 3600  # kWh to KJ
             / (self.mass * self.cp)
         ) - 273.15
 
@@ -423,6 +423,118 @@ class ThermalEnergyStorageEfficiencies(Component):
         thermal_energy_generator.log_observation(observation, timestamp)
 
         return self.current_temperature, el_load
+
+    def operate_storage_bivalent(self, timestamp, hp, hr, norm_temp):
+        # determine bivalence temperature according to norm_temperature
+        if norm_temp <= -16:
+            biv_temp = -4  # -1
+        elif (norm_temp > -16) & (norm_temp <= -10):
+            biv_temp = -3  # 0
+        elif norm_temp > -10:
+            biv_temp = -2  # 1
+        # dataframe with temperatures to decide whether hp or hr has to be run
+       # temperatures = pd.read_csv("./input/thermal/dwd_temp_15min_2015.csv",
+            # index_col = "time")
+        #temperatures.index = self.user_profile.thermal_energy_demand.index
+
+        # for temperatures above bivalence the hp is running
+        # if temperatures.temperature.loc[timestamp] > biv_temp:
+        if self.user_profile.mean_temp_quarter_hours.temperature.loc[timestamp] > biv_temp:
+            if hr.is_running:
+                hr.ramp_down(timestamp)
+            if self.get_needs_loading():
+                hp.ramp_up(timestamp)
+            else:
+                hp.ramp_down(timestamp)
+
+            thermal_energy_demand = self.user_profile.thermal_energy_demand.thermal_energy_demand.loc[
+                timestamp
+            ]
+            observation = hp.observations_for_timestamp(
+                timestamp
+            )
+            observation_hr = hr.observations_for_timestamp(
+                timestamp
+            )
+            thermal_production = observation["thermal_energy_output"]
+
+            # Formula: E = m * cp * T
+            #     <=> T = E / (m * cp)
+            self.state_of_charge -= (
+                (thermal_energy_demand - thermal_production)
+                * 1000
+                / (60 / self.environment.timebase)
+            )
+            self.state_of_charge *= self.efficiency_per_timestep
+            self.current_temperature = (
+                # hier eventuell noch Faktor 3.6 für Umrechnung Wh (abgegebene Energie hp) nach kJ
+                self.state_of_charge / (self.mass * self.cp)
+            ) + (self.target_temperature - self.hysteresis)  # - 273.15
+
+            #print("tes temp: " + str(self.current_temperature))
+
+            if hp.is_running:
+                el_load = observation["el_demand"]
+            else:
+                el_load = 0
+
+            self.timeseries.temperature[timestamp] = self.current_temperature
+
+            # log timeseries of thermal_energy_generator_class:
+            hp.log_observation(observation, timestamp)
+            hr.log_observation(observation_hr, timestamp)
+
+            # return self.current_temperature, el_load
+
+        # for temperatures below bivalence the hr is running
+        # if temperatures.temperature.loc[timestamp] <= biv_temp:
+        if self.user_profile.mean_temp_quarter_hours.temperature.loc[timestamp] < biv_temp:
+            if hp.is_running:
+                hp.ramp_down(timestamp)
+            if self.get_needs_loading():
+                hr.ramp_up(timestamp)
+            else:
+                hr.ramp_down(timestamp)
+
+            thermal_energy_demand = self.user_profile.thermal_energy_demand.thermal_energy_demand.loc[
+                timestamp
+            ]
+            observation = hr.observations_for_timestamp(
+                timestamp
+            )
+
+            observation_hp = hp.observations_for_timestamp(
+                timestamp
+            )
+
+            thermal_production = observation["thermal_energy_output"]
+
+            # Formula: E = m * cp * T
+            #     <=> T = E / (m * cp)
+            self.state_of_charge -= (
+                (thermal_energy_demand - thermal_production)
+                * 1000
+                / (60 / self.environment.timebase)
+            )
+            self.state_of_charge *= self.efficiency_per_timestep
+            self.current_temperature = (
+                self.state_of_charge / (self.mass * self.cp)
+            ) + (self.target_temperature - self.hysteresis)  # - 273.15
+
+            #print("tes temp: " + str(self.current_temperature))
+
+            if hr.is_running:
+                el_load = observation["el_demand"]
+            else:
+                el_load = 0
+
+            self.timeseries.temperature[timestamp] = self.current_temperature
+
+            # log timeseries of thermal_energy_generator_class:
+            hr.log_observation(observation, timestamp)
+            hp.log_observation(observation_hp, timestamp)
+
+            # return self.current_temperature, el_load
 
     def get_needs_loading(self):
         """.
@@ -525,7 +637,7 @@ class ThermalEnergyStorageEfficiencies(Component):
         Returns
         -------
         ...
-
+        """
         return {}
 
     def prepare_time_series(self):

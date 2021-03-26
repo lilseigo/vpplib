@@ -33,8 +33,8 @@ cp = 4.2
 efficiency_class = "A+"
 
 # Values for Heatpump
-# el_power = 5  # kW electric
-# th_power = 8  # kW thermal
+el_power = 5  # kW electric
+th_power = 8  # kW thermal
 ramp_up_time = 1 / 15  # timesteps
 ramp_down_time = 1 / 15  # timesteps
 min_runtime = 1  # timesteps
@@ -83,6 +83,8 @@ hp = HeatPump(
     unit="kW",
     environment=environment,
     user_profile=user_profile,
+    el_power=el_power,
+    th_power=th_power,
     ramp_up_time=ramp_up_time,
     ramp_down_time=ramp_down_time,
     min_runtime=min_runtime,
