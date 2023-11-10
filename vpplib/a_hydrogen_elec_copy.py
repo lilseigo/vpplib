@@ -365,7 +365,7 @@ class ElectrolysisMoritz:
         dt = self.T - 20 #operate temp. - ambient temp.
 
         q_H2O_fresh = (- (c_pH2O/(60/self.dt)) * H2O_mfr * dt * 1.5) #multyplied with 1.5 for transport water #kw
-        q_loss = - (q_cell + q_H2O_fresh) * 0.14
+        q_loss =  (q_cell + q_H2O_fresh) * 0.14   # hier war mal ein minus vor
 
         return q_loss   #kw
 
@@ -421,6 +421,14 @@ class ElectrolysisMoritz:
     def prepare_timeseries(self, ts):
         
         #power_dc 
+        ts['P_in [KW]'] = 0.0
+        
+        for i in range(len(ts.index)):
+            if ts.loc[ts.index[i], 'P_ac'] > 0:
+                ts.loc[ts.index[i], 'P_in [KW]'] = self.power_dc(ts.loc[ts.index[i], 'P_ac'])
+            else:
+                
+                ts.loc[ts.index[i], 'P_in [KW]'] = 0  
 
         #status_codes
         ts = self.status_codes(ts)
@@ -429,7 +437,7 @@ class ElectrolysisMoritz:
         ts['hydrogen production [Kg/dt]'] = 0.0 #neue Spalte mit hydrogenproduction = 0.0 "platzhalter"
         ts['surplus electricity [kW]'] = 0.0
         ts['H20 [kg/dt]'] = 0.0
-        ts['Heat Cell [W/dt]'] = 0.0
+        ts['Heat Cell [kw/dt]'] = 0.0
         ts['Oxygen [kg/dt]'] = 0.0
         ts['compression [kw]'] = 0.0
         ts['gasdrying {kw/dt]'] = 0.0
@@ -461,9 +469,9 @@ class ElectrolysisMoritz:
                     #pump  #kw
                     ts.loc[ts.index[i], 'pump [kw/dt]'] = round(self.calc_pump(ts.loc[ts.index[i], 'H20 [kg/dt]'])*ts.loc[ts.index[i], 'H20 [kg/dt]'],2)
                     # heat_cell
-                    ts.loc[ts.index[i], 'Heat Cell [W/dt]'] = round(self.heat_cell(ts.loc[ts.index[i], 'P_in [KW]']),2)
+                    ts.loc[ts.index[i], 'Heat Cell [kw/dt]'] = round(self.heat_cell(ts.loc[ts.index[i], 'P_in [KW]']),2)
                     # heat system
-                    ts.loc[ts.index[i], 'heat system [kW/dt]'] = round(self.heat_sys(ts.loc[ts.index[i], 'Heat Cell [W/dt]'], ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
+                    ts.loc[ts.index[i], 'heat system [kW/dt]'] = round(self.heat_sys(ts.loc[ts.index[i], 'Heat Cell [kw/dt]'], ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
                     #efficiency
                     ts.loc[ts.index[i], 'efficiency [%]'] = round((((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])*self.hhv)/(((ts.loc[ts.index[i], 'P_in [KW]'])+ts.loc[ts.index[i], 'gasdrying {kw/dt]']+ts.loc[ts.index[i], 'pump [kw/dt]']+ts.loc[ts.index[i], 'heat system [kW/dt]'])/(60/self.dt))) *100,2)
                     #efficency with compression
@@ -485,9 +493,9 @@ class ElectrolysisMoritz:
                     #pump
                     ts.loc[ts.index[i], 'pump [kw/dt]'] = round(self.calc_pump(ts.loc[ts.index[i], 'H20 [kg/dt]'])*ts.loc[ts.index[i], 'H20 [kg/dt]'],2)
                     # heat_cell
-                    ts.loc[ts.index[i], 'Heat Cell [W/dt]'] = round(self.heat_cell(self.P_nominal),2)
+                    ts.loc[ts.index[i], 'Heat Cell [kw/dt]'] = round(self.heat_cell(self.P_nominal),2)
                     # heat system
-                    ts.loc[ts.index[i], 'heat system [kW/dt]'] = round(self.heat_sys(ts.loc[ts.index[i], 'Heat Cell [W/dt]'], ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
+                    ts.loc[ts.index[i], 'heat system [kW/dt]'] = round(self.heat_sys(ts.loc[ts.index[i], 'Heat Cell [kw/dt]'], ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
                     
                     #efficiency
                     ts.loc[ts.index[i], 'efficiency [%]'] = round((((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])*self.hhv)/(((ts.loc[ts.index[i], 'P_in [KW]'])-ts.loc[ts.index[i], 'surplus electricity [kW]']+ts.loc[ts.index[i], 'gasdrying {kw/dt]']+ts.loc[ts.index[i], 'pump [kw/dt]']+ts.loc[ts.index[i], 'heat system [kW/dt]'])/(60/self.dt))) *100,2)

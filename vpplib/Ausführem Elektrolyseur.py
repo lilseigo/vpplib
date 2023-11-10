@@ -10,7 +10,8 @@ ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib
 #ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
 #ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=100)
 
-ts['P_in [KW]'] = round(ts['P_in [KW]']/100,2)
+#ts['P_in [KW]'] = round(ts['P_in [KW]']/100,2)
+ts['P_ac'] = round(ts['P_ac']/100,2)
 #print(ts)
 ts['time']=0
 
