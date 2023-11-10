@@ -320,7 +320,7 @@ class ElectrolysisMoritz:
         P_hz = cp_H2*M_H2*n*dT
 
         Q_des = 48600*n #J/s
-        P_gasdrying = (P_hz + Q_des)/(60*self.dt) #in kW
+        P_gasdrying = (P_hz + Q_des)/(60*self.dt) #in kW  
         return P_gasdrying  #kw/kg
 
     def compression(self,p2):       #tabelle
