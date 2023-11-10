@@ -16,9 +16,8 @@ ts['P_ac'] = round(ts['P_ac']/100,2)
 ts['time']=0
 
 
-
 #definieren eines elektrolyseurs mit der Klasse Electrolyzer
-electrolyzer = ElectrolysisMoritz(500,750,15)
+electrolyzer = ElectrolysisMoritz(1000,750,15)
 
 #Auführen von Funktionen
 #Hier Wasserstoffproduktion
