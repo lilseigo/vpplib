@@ -9,7 +9,7 @@ from scipy.optimize import minimize_scalar
 
 class ElectrolysisMoritz:
     
-    def __init__(self,P_elektrolyseur,p2,dt):
+    def __init__(self,P_elektrolyseur,p2,dt,production_H2):
 
            
         # Constants
@@ -40,6 +40,7 @@ class ElectrolysisMoritz:
         self.p_atmo = 101325 #2000000  # (Pa) atmospheric pressure / pressure of water
         self.p_anode = self.p_atmo  # (Pa) pressure at anode, assumed atmo
         self.dt=dt
+        self.production_H2=production_H2
         
     def status_codes(self,df):      #tabelle
       
@@ -260,7 +261,7 @@ class ElectrolysisMoritz:
         :return:
         '''
         P_dc = P_ac - self.power_electronics(P_ac, self.stack_nominal()/100)
-
+        #P_dc = P_ac - self.power_electronics(P_ac, self.P_nominal/100)
         return P_dc
 
     def run(self, P_dc):        #tabelle        #Einheit: kg/dt
@@ -272,7 +273,7 @@ class ElectrolysisMoritz:
         I = self.calculate_cell_current(P_dc)   #A
         V = self.calc_cell_voltage(I, self.temperature) #V
         eta_F = self.calc_faradaic_efficiency(I)
-        mfr = (eta_F * I * self.M * self.n_cells) / (self.n * self.F)
+        mfr = (eta_F * I * self.M * self.n_cells*self.n_stacks) / (self.n * self.F) #self.n_stacks hinzugefügt
         #power_left -= self.calc_stack_power(I, self.temperature) * 1e3
         H2_mfr = (mfr*60*self.dt)/1000 #kg/dt
 
@@ -422,7 +423,7 @@ class ElectrolysisMoritz:
     def prepare_timeseries(self, ts):
         #prüft ob der elektrolyseur in der 500 klasse liegt
         if self.P_nominal % 500 != 0:
-            raise ValueError("Die Leistung des Elektrolyseurs muss in der 500 Reihe liegen!")
+            raise ValueError("Die Leistung des Elektrolyseurs muss in der 500er Reihe liegen!")
         else:   
             #power_dc 
             ts['P_in [KW]'] = 0.0
@@ -449,6 +450,7 @@ class ElectrolysisMoritz:
             ts['heat system [kW/dt]'] = 0.0
             ts['efficiency [%]'] = 0.0
             ts['efficency with compression [%]'] = 0.0
+            
 
 
             for i in range(len(ts.index)): #Syntax überprüfen! 
@@ -464,15 +466,15 @@ class ElectrolysisMoritz:
                         ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'] = round(self.run(ts.loc[ts.index[i], 'P_in [KW]']),2)
                         #H20  kg/dt
                         ts.loc[ts.index[i], 'H20 [kg/dt]'] = round(self.calc_H2O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
-                        #oxygen
+                        #oxygen kg/dt
                         ts.loc[ts.index[i], 'Oxygen [kg/dt]'] = round(self.calc_O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
-                        #compression kw/dt
+                        #compression kw
                         ts.loc[ts.index[i], 'compression [kw]'] = round(self.compression(self.p2)*(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
                         #gasdrying #kw
                         ts.loc[ts.index[i], 'gasdrying {kw/dt]'] = round(self.gas_drying(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])*ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'],2)
                         #pump  #kw
                         ts.loc[ts.index[i], 'pump [kw/dt]'] = round(self.calc_pump(ts.loc[ts.index[i], 'H20 [kg/dt]'])*ts.loc[ts.index[i], 'H20 [kg/dt]'],2)
-                        # heat_cell
+                        # heat_cell kw
                         ts.loc[ts.index[i], 'Heat Cell [kw/dt]'] = round(self.heat_cell(ts.loc[ts.index[i], 'P_in [KW]']),2)
                         # heat system
                         ts.loc[ts.index[i], 'heat system [kW/dt]'] = round(self.heat_sys(ts.loc[ts.index[i], 'Heat Cell [kw/dt]'], ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']),2)
@@ -480,9 +482,11 @@ class ElectrolysisMoritz:
                         ts.loc[ts.index[i], 'efficiency [%]'] = round((((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])*self.hhv)/(((ts.loc[ts.index[i], 'P_in [KW]'])+ts.loc[ts.index[i], 'gasdrying {kw/dt]']+ts.loc[ts.index[i], 'pump [kw/dt]']+ts.loc[ts.index[i], 'heat system [kW/dt]'])/(60/self.dt))) *100,2)
                         #efficency with compression
                         ts.loc[ts.index[i], 'efficency with compression [%]'] = round((((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])*self.hhv)/(((ts.loc[ts.index[i], 'P_in [KW]'])+ts.loc[ts.index[i], 'compression [kw]']+ts.loc[ts.index[i], 'gasdrying {kw/dt]']+ts.loc[ts.index[i], 'pump [kw/dt]']+ts.loc[ts.index[i], 'heat system [kW/dt]'])/(60/self.dt))) *100,2)
+                        
+                    
                     #wenn die Eingangsleistung größer als p_eletrolyseur ist
                     else:
-                        #hydrogen Nm3/dt
+                        #hydrogen kg/dt
                         ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'] = round(self.run(self.P_nominal),2)
                         #surplus electricity [kW]
                         ts.loc[ts.index[i], 'surplus electricity [kW]'] = round(ts.loc[ts.index[i], 'P_in [KW]'] - self.P_nominal,2)  
@@ -507,10 +511,34 @@ class ElectrolysisMoritz:
                         #efficency with compression
                         ts.loc[ts.index[i], 'efficency with compression [%]'] = round((((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])*self.hhv)/(((ts.loc[ts.index[i], 'P_in [KW]'])-ts.loc[ts.index[i], 'surplus electricity [kW]']+ts.loc[ts.index[i], 'compression [kw]']+ts.loc[ts.index[i], 'gasdrying {kw/dt]']+ts.loc[ts.index[i], 'pump [kw/dt]']+ts.loc[ts.index[i], 'heat system [kW/dt]'])/(60/self.dt))) *100,2)
                         
+                    
+
                 
                 #hochfahren
                 elif ts.loc[ts.index[i], 'status'] == 'booting':
                     ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]'] - 0.0085*self.P_nominal
                 else:
                     ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]']
+
+            #Wie lange dauert die produktion des Wasserstoffs
+            for i in ts.index:
+                total_production = 0
+                count_additions = 0
+                i=0
+                # Solange die Gesamtproduktion kleiner als 100 ist, addiere den aktuellen Wert
+            while total_production <= self.production_H2:
+                #total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
+                total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
+                count_additions += 1
+                i+=1
+                #print(total_production)
+             
+            print("Die Produktion von {}kg Wasserstoff dauert {} Stunden".format(self.production_H2,(count_additions/(60/self.dt))))
+
+
+           
+    
+    
             return ts
+
+            
