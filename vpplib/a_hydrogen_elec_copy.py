@@ -533,9 +533,9 @@ class ElectrolysisMoritz:
                 count_additions += 1
                 i+=1
                 #print(total_production)
-             
+            
             print("Die Produktion von {}kg Wasserstoff dauert {} Stunden".format(self.production_H2,(count_additions/(60/self.dt))))
-
+            
 
            
     

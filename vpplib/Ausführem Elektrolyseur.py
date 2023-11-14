@@ -17,7 +17,7 @@ ts['time']=0
 
 
 #definieren eines elektrolyseurs mit der Klasse Electrolyzer
-electrolyzer = ElectrolysisMoritz(500,750,60,100)  #kw, bar, dt, wie viel zeit für ... kg wasserstoff
+electrolyzer = ElectrolysisMoritz(500,350,60,100)  #kw, bar, dt, wie viel zeit für ... kg wasserstoff
 
 #Auführen von Funktionen
 #Hier Wasserstoffproduktion
