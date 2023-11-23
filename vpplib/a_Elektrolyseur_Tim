@@ -1,0 +1,15 @@
+# #units
+#         #units_P W, KW,MW
+#         self.unit_P =unit_P
+
+#         if self.unit_P =="W":
+#             P_elektrolyseur =P_elektrolyseur*1000
+#         elif self.unit_P =="KW":
+#            P_elektrolyseur =P_elektrolyseur
+#         elif self.unit_P =="MW":
+#             P_elektrolyseur =P_elektrolyseur/1000
+#         else:
+#            raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs!") 
+#         #Units_dt S, M,h
+        
+#         self.unit_dt=unit_dt
