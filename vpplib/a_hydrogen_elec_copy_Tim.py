@@ -36,8 +36,10 @@ class ElectrolysisMoritz:
            P_elektrolyseur =P_elektrolyseur
         elif self.unit_P.lower() =="mw":
             P_elektrolyseur =P_elektrolyseur*1000
+        elif self.unit_P.lower() =="gw":
+            P_elektrolyseur =P_elektrolyseur*1000*1000
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW") 
+           raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW,GW") 
         
         #Units_dt S, M,H     
         self.unit_dt=unit_dt
