@@ -37,7 +37,7 @@ class ElectrolysisMoritz:
         elif self.unit_P.lower() =="mw":
             P_elektrolyseur =P_elektrolyseur/1000
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs!") 
+           raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW") 
         
         #Units_dt S, M,H     DAS PASST NOCH NICHT!!
         self.unit_dt=unit_dt
@@ -49,7 +49,7 @@ class ElectrolysisMoritz:
         elif self.unit_dt.lower() =="h": # hour
             self.dt=self.dt_1*60
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit der Zeit!") 
+           raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H") 
         #self.dt=self.dt_1
         
         
