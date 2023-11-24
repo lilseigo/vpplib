@@ -48,8 +48,10 @@ class ElectrolysisMoritz:
            self.dt=self.dt_1
         elif self.unit_dt.lower() =="h": # hour
             self.dt=self.dt_1*60
+        elif self.unit_dt.lower() =="d": # days
+            self.dt=self.dt_1*60*24
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H") 
+           raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H,D") 
         
         
         
