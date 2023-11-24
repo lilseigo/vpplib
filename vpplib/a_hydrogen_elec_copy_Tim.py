@@ -395,7 +395,7 @@ class ElectrolysisMoritz:
                 q_H20_fresh in kW
         '''
         #c_pH2O = 0.001162 #kWh/kg*k #alt
-        c_pH2O = (0.001162)/(60/self.dt) #kWdt/kg*k
+        c_pH2O = (0.001162)/(60*self.dt) #kWdt/kg*k
         dt = self.T - 20 #operate temp. - ambient temp.
 
         q_H2O_fresh = (- (c_pH2O) * H2O_mfr * dt * 1.5) #multyplied with 1.5 for transport water #kw
@@ -442,12 +442,12 @@ class ElectrolysisMoritz:
         # Eigenverbrauch berechnen
         dt_interp_pressure = f_dt_pressure(0.9)  # Interpoliere den eta-Wert
 
-        vfr_H2O = (H2O_mfr/997) #mass in volume with 997 kg/m3
-        P_pump_fresh =  (vfr_H2O/60*self.dt) * (self.p_atmo) * (1-eta_interp_pump)
-        P_pump_cool = (vfr_H2O/60*self.dt ) * (dt_interp_pressure) * (1 - eta_interp_pump)
+        vfr_H2O = ((H2O_mfr/(60*self.dt))/997) #mass in volume with 997 kg/m3
+        P_pump_fresh =  (vfr_H2O) * (self.p_atmo) * (1-eta_interp_pump)
+        P_pump_cool = (vfr_H2O ) * (dt_interp_pressure) * (1 - eta_interp_pump)
         #P_gesamt=(P_pump_fresh+ P_pump_cool)/1000/(60*self.dt) #W in KW   
         #P_gesamt=(P_pump_fresh+ P_pump_cool)/1000/(H2O_mfr)#kw/kg
-        P_gesamt=(P_pump_fresh+ P_pump_cool)/1000#kw
+        P_gesamt=(P_pump_fresh+ P_pump_cool)#kw
         return P_gesamt #kw/kg
 
     
@@ -555,7 +555,6 @@ class ElectrolysisMoritz:
                         surplus_electricity=ts.loc[ts.index[i], 'P_in [KW]'] - self.P_nominal
                         ts.loc[ts.index[i], 'surplus electricity [kW]'] = round(surplus_electricity,2)
 
-                        
                         #H20  kg/dt
                         H2O=self.calc_H2O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                         ts.loc[ts.index[i], 'H20 [kg/dt]'] = round(H2O,2)
