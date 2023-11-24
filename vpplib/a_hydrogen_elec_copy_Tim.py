@@ -263,7 +263,7 @@ class ElectrolysisMoritz:
 
         return eta_f
 
-    def power_electronics(self, P_nominal, P_ac):               #Einheit: KW
+    def power_electronics(self, P_nominal, P_ac):   #tabelle            #Einheit: KW
         '''
         P_nominal: Electrolyzer Size in kW
         P_ac: P_in [KW]
@@ -331,7 +331,7 @@ class ElectrolysisMoritz:
 
         return H2O_mfr  #kg/dt
 
-    def gas_drying(self,H2_mfr):    #tabelle        #hier könnte noch ein fehler sein die werte scheinen mir sehr hoch
+    def gas_drying(self,H2_mfr):    #tabelle        
         '''
         input n_h2: mass flow in kg/dt
         :param n_H2:
@@ -640,7 +640,7 @@ class ElectrolysisMoritz:
                 total_production = 0
                 count_additions = 0
                 i=0
-                # Solange die Gesamtproduktion kleiner als 100 ist, addiere den aktuellen Wert
+                # Solange die Gesamtproduktion kleiner als ... ist, addiere den aktuellen Wert
             while total_production <= self.production_H2:
                 #total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
                 total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
