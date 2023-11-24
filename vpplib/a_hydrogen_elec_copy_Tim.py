@@ -50,7 +50,7 @@ class ElectrolysisMoritz:
             self.dt=self.dt_1*60
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H") 
-        #self.dt=self.dt_1
+        
         
         
         self.P_nominal = P_elektrolyseur    #kW
@@ -372,7 +372,7 @@ class ElectrolysisMoritz:
         #P_compression = (((w_isentrop/self.M)/1000) * (1/3600)) / eta_Ver  #alt
         #P_compression = ((w_isentrop/(60*self.dt))/eta_Ver)/1000
         #P_compression = ((w_isentrop/self.M)/1000)/eta_Ver 
-        P_compression = (((w_isentrop/self.M) * (1/60*self.dt)) / eta_Ver )/1000   
+        P_compression = (((w_isentrop/self.M) / eta_Ver )/1000)/(60*self.dt)   
         return P_compression    #kw
 
     def heat_cell(self, P_dc):          #tabelle
@@ -403,14 +403,14 @@ class ElectrolysisMoritz:
 
         return q_loss   #kw
 
-    def calc_mfr_cool(self, q_loss): 
+    def calc_mfr_cool(self, q_loss):  #tabelle
         '''
-        q_system in kWh
-        return: mfr cooling water in kg/h
+        q_system in kW
+        return: mfr cooling water in kg/dt
         '''
 
-        q_system = q_loss#kWh
-        c_pH2O = 0.001162 #kWh/kg*k
+        q_system = q_loss/1000#kWh
+        c_pH2O = 0.001162/(60*self.dt) #kWh/kg*k
         #operate temperature - should temperature
         mfr_cool = ((q_system)/(c_pH2O*(50-20)))
 
@@ -448,7 +448,7 @@ class ElectrolysisMoritz:
         #P_gesamt=(P_pump_fresh+ P_pump_cool)/1000/(60*self.dt) #W in KW   
         #P_gesamt=(P_pump_fresh+ P_pump_cool)/1000/(H2O_mfr)#kw/kg
         P_gesamt=(P_pump_fresh+ P_pump_cool)#kw
-        return P_gesamt #kw/kg
+        return P_gesamt #kw
 
     
     
@@ -463,7 +463,7 @@ class ElectrolysisMoritz:
             
             for i in range(len(ts.index)):
                 if ts.loc[ts.index[i], 'P_ac'] > 0:
-                    ts.loc[ts.index[i], 'P_in [KW]'] = self.power_dc(ts.loc[ts.index[i], 'P_ac'])
+                    ts.loc[ts.index[i], 'P_in [KW]'] = round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
                 else:
                     
                     ts.loc[ts.index[i], 'P_in [KW]'] = 0  
@@ -476,6 +476,7 @@ class ElectrolysisMoritz:
             ts['surplus electricity [kW]'] = 0.0
             ts['H20 [kg/dt]'] = 0.0
             ts['Oxygen [kg/dt]'] = 0.0
+            ts['cooling Water [kg/dt]'] = 0.0
             ts['Heat Cell [%]'] = 0.0
             ts['compression [%]'] = 0.0
             ts['gasdrying {%]'] = 0.0
@@ -509,6 +510,11 @@ class ElectrolysisMoritz:
                         #oxygen kg/dt
                         Oxygen=self.calc_O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                         ts.loc[ts.index[i], 'Oxygen [kg/dt]'] = round(Oxygen,2)
+
+                        #cooling_water kg/dt
+                        
+                        cooling_water=self.calc_mfr_cool(heat_system_KW)
+                        ts.loc[ts.index[i], 'cooling Water [kg/dt]']=round(cooling_water,2)
                         #------------------------------------------------------------------------------------------------------------------------------
                         #losses 
                         
@@ -532,6 +538,10 @@ class ElectrolysisMoritz:
                         #compression %
                         compression_KW=self.compression(self.p2)
                         ts.loc[ts.index[i], 'compression [%]'] = round((compression_KW/ts.loc[ts.index[i], 'P_in [KW]'])*100,2)
+
+                        #cooling_water kg/dt
+                        cooling_water=self.calc_mfr_cool(heat_system_KW)
+                        ts.loc[ts.index[i], 'cooling Water [kg/dt]']=round(cooling_water,2)
                         #---------------------------------------------------------------------------------------------------------------------------------------
                         #efficiency
                         efficiency=100-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'Heat Cell [%]']-ts.loc[ts.index[i], 'heat system [%]']
@@ -562,6 +572,7 @@ class ElectrolysisMoritz:
                         #oxygen kg/dt
                         Oxygen=self.calc_O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                         ts.loc[ts.index[i], 'Oxygen [kg/dt]'] = round(Oxygen,2)
+
                         #------------------------------------------------------------------------------------------------------------------------------
                         #losses 
                         
@@ -585,6 +596,10 @@ class ElectrolysisMoritz:
                         #compression %
                         compression_KW=self.compression(self.p2)
                         ts.loc[ts.index[i], 'compression [%]'] = round((compression_KW/self.P_nominal)*100,2)
+
+                        #cooling_water kg/dt
+                        cooling_water=self.calc_mfr_cool(heat_system_KW)
+                        ts.loc[ts.index[i], 'cooling Water [kg/dt]']=round(cooling_water,2)
                         #---------------------------------------------------------------------------------------------------------------------------------------
                         #efficiency
                         efficiency=100-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'Heat Cell [%]']-ts.loc[ts.index[i], 'heat system [%]']
