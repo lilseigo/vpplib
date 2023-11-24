@@ -480,6 +480,7 @@ class ElectrolysisMoritz:
             ts['cooling Water [kg/dt]'] = 0.0
             
             ts['compression [%]'] = 0.0
+            ts['electrolyzer {%]'] = 0.0
             ts['gasdrying {%]'] = 0.0
             ts['electromics [%]'] = 0.0
             ts['pump [%]'] = 0.0
@@ -521,6 +522,10 @@ class ElectrolysisMoritz:
                         #------------------------------------------------------------------------------------------------------------------------------
                         #losses 
                         
+                        #electrolyzer
+                        electrolyzer=100-(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/ts.loc[ts.index[i], 'P_in [KW]'])*100)
+                        ts.loc[ts.index[i], 'electrolyzer {%]'] = round(electrolyzer)
+
                         #gasdrying %
                         gasdrying_KW=self.gas_drying(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                         ts.loc[ts.index[i], 'gasdrying {%]'] = round((gasdrying_KW/ts.loc[ts.index[i], 'P_in [KW]'])*100,2)   
@@ -581,6 +586,10 @@ class ElectrolysisMoritz:
 
                         #------------------------------------------------------------------------------------------------------------------------------
                         #losses 
+                        
+                        #electrolyzer
+                        electrolyzer=100-(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/self.P_nominal)*100)
+                        ts.loc[ts.index[i], 'electrolyzer {%]'] = round(electrolyzer)
                         
                         #gasdrying %
                         gasdrying_KW=self.gas_drying(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
