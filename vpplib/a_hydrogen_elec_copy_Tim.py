@@ -515,10 +515,7 @@ class ElectrolysisMoritz:
                         Oxygen=self.calc_O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                         ts.loc[ts.index[i], 'Oxygen [kg/dt]'] = round(Oxygen,2)
 
-                        #cooling_water kg/dt
                         
-                        cooling_water=self.calc_mfr_cool(heat_system_KW)
-                        ts.loc[ts.index[i], 'cooling Water [kg/dt]']=round(cooling_water,2)
                         #------------------------------------------------------------------------------------------------------------------------------
                         #losses 
                         
