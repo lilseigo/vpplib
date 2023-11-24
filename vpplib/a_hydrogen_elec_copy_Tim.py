@@ -39,7 +39,7 @@ class ElectrolysisMoritz:
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW") 
         
-        #Units_dt S, M,H     DAS PASST NOCH NICHT!!
+        #Units_dt S, M,H     
         self.unit_dt=unit_dt
         self.dt_1=dt_1
         if self.unit_dt.lower() =="s": # second
