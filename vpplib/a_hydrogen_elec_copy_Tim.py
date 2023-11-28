@@ -9,7 +9,7 @@ from scipy.optimize import minimize_scalar
 
 class ElectrolysisMoritz:
     
-    def __init__(self,P_elektrolyseur,unit_P,p2,dt_1,unit_dt,production_H2):
+    def __init__(self,P_elektrolyseur,unit_P,p2,dt_1,unit_dt,production_H2_,unit_production_H2):
 
            
         # Constants
@@ -27,7 +27,7 @@ class ElectrolysisMoritz:
         self.p2=p2 #bar compression
 
         #units
-        #units_P W, KW,MW
+        #units_P W, KW, MW, GW
         self.unit_P =unit_P
 
         if self.unit_P.lower() =="w":
@@ -41,21 +41,45 @@ class ElectrolysisMoritz:
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW,GW") 
         
-        #Units_dt S, M,H     
+        #Units_dt S, M, H,D     
         self.unit_dt=unit_dt
         self.dt_1=dt_1
         if self.unit_dt.lower() =="s": # second
             self.dt=self.dt_1/60
+            self.dt_2="Sekunden"
+            
         elif self.unit_dt.lower() =="m": # minute
-           self.dt=self.dt_1
+            self.dt=self.dt_1
+            self.dt_2="Minuten"
+            
         elif self.unit_dt.lower() =="h": # hour
             self.dt=self.dt_1*60
+            self.dt_2="Stunden"
+            
         elif self.unit_dt.lower() =="d": # days
             self.dt=self.dt_1*60*24
+            self.dt_2="Tage"
+            
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H,D") 
         
-        
+        #units_H2 G, KG, T,
+        self.unit_production_H2 =unit_production_H2
+        self.production_H2_=production_H2_
+        self.production_H2=production_H2_
+
+        if self.unit_production_H2.lower() =="g":
+            self.unit_production=self.production_H2
+            self.unit_H2="Gramm"
+            self.production_H2=self.production_H2/1000
+        elif self.unit_production_H2.lower() =="kg":
+           self.production_H2=self.production_H2
+           self.unit_H2="Kilogramm"
+        elif self.unit_production_H2.lower() =="t":
+            self.production_H2=self.production_H2*1000
+            self.unit_H2="Tonnen"
+        else:
+           raise ValueError("Bitte überprüfen Sie die Einheit des zu erzeugendem Wasserstoffs! Derzeit sind die Möglickeiten G,Kg,T") 
         
         self.P_nominal = P_elektrolyseur    #kW
         self.P_min = self.P_nominal * 0.1   #kW
@@ -71,7 +95,7 @@ class ElectrolysisMoritz:
         self.p_atmo = 101325 #2000000  # (Pa) atmospheric pressure / pressure of water
         self.p_anode = self.p_atmo  # (Pa) pressure at anode, assumed atmo
         
-        self.production_H2=production_H2
+       
         
     def status_codes(self,df):      #tabelle
       
@@ -330,7 +354,8 @@ class ElectrolysisMoritz:
         roh_H2O = 997 #kg/m3
 
         ratio_M = M_H2O/self.M # (mol/g)/(mol/g)
-        H2O_mfr = H2_mfr * ratio_M + 40#H2O_mfr in kg
+        #H2O_mfr = H2_mfr * ratio_M + 40#H2O_mfr in kg  #alt wofür die +40?
+        H2O_mfr = H2_mfr * ratio_M+40*(60/self.dt)
         #H2O_mfr = H2O_mfr_kg / roh_H2O
 
         return H2O_mfr  #kg/dt
@@ -357,7 +382,7 @@ class ElectrolysisMoritz:
         P_gasdrying = (P_hz + Q_des)/1000 #in kW 
         return P_gasdrying  #kw
 
-    def compression(self,p2):       #tabelle
+    def compression(self,p2,H2_mfr):       #tabelle
         '''
         :param p2: needed pressure in bar
         :param T: electrolyze temperature
@@ -371,13 +396,17 @@ class ElectrolysisMoritz:
         k = 1.4
         kk = k / (k - 1)
         eta_Ver = 0.75
-        #w_isentrop = kk * self.R * T2 * Z*(((p2 / p1)**kk) - 1) #alt
-        w_isentrop = kk * self.R * self.T *Z*((p2 / p1)**((k-1)/k) - 1)
+        #w_isentrop = kk * self.R * T2 * Z*(((p2 / p1)**kk) - 1)*H2_mfr #alt
+        w_isentrop = kk * self.R * T2 *Z*((p2 / p1)**((k-1)/k) - 1)
+        
         #T2 = T*(p2 / p1) ** kk
-        #P_compression = (((w_isentrop/self.M)/1000) * (1/3600)) / eta_Ver  #alt
+        #P_compression = (((w_isentrop/self.M)/1000) * (1/60*self.dt)) / eta_Ver  #alt
         #P_compression = ((w_isentrop/(60*self.dt))/eta_Ver)/1000
         #P_compression = ((w_isentrop/self.M)/1000)/eta_Ver 
-        P_compression = (((w_isentrop/self.M) / eta_Ver )/1000)
+        #P_compression = (((w_isentrop/self.M) / eta_Ver )/1000)
+        #P_compression = ((((w_isentrop)*((H2_mfr/self.M)*(self.dt/60))))/eta_Ver)
+        P_compression=((w_isentrop*H2_mfr*(60/self.dt))/eta_Ver)/1000
+
         return P_compression    #kw
 
     def heat_cell(self, P_dc):          #tabelle
@@ -400,12 +429,12 @@ class ElectrolysisMoritz:
                 q_H20_fresh in kW
         '''
         #c_pH2O = 0.001162 #kWh/kg*k #alt
-        c_pH2O = (0.001162)/(60*self.dt) #kWdt/kg*k
+        c_pH2O = (0.001162)/(60*self.dt) #kWh/kg*k
         dt = self.T - 20 #operate temp. - ambient temp.
 
-        #q_H2O_fresh = (- (c_pH2O) * H2O_mfr * dt * 1.5) #multyplied with 1.5 for transport water #kw
-        #q_loss =  -(q_cell + q_H2O_fresh) * 0.14   # hier war mal ein minus vor
-        q_loss=q_cell
+        q_H2O_fresh = (- (c_pH2O) * H2O_mfr * dt * 1.5) #multyplied with 1.5 for transport water #kw
+        q_loss =  -(q_cell + q_H2O_fresh) * 0.14   # hier war mal ein minus vor
+        #q_loss=q_cell
         return q_loss   #kw
 
     def calc_mfr_cool(self, q_loss):  #tabelle
@@ -548,7 +577,7 @@ class ElectrolysisMoritz:
                         ts.loc[ts.index[i], 'heat system [%]'] = round((heat_system_KW/ts.loc[ts.index[i], 'P_in [KW]'])*100,2)
                         
                         #compression %
-                        compression_KW=self.compression(self.p2)
+                        compression_KW=self.compression(self.p2,ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                         ts.loc[ts.index[i], 'compression [%]'] = round((compression_KW/ts.loc[ts.index[i], 'P_in [KW]'])*100,2)
 
                         #cooling_water kg/dt
@@ -613,7 +642,7 @@ class ElectrolysisMoritz:
                         ts.loc[ts.index[i], 'heat system [%]'] = round((heat_system_KW/self.P_nominal)*100,2)
                         
                         #compression %
-                        compression_KW=self.compression(self.p2)
+                        compression_KW=self.compression(self.p2,ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                         ts.loc[ts.index[i], 'compression [%]'] = round((compression_KW/self.P_nominal)*100,2)
 
                         #cooling_water kg/dt
@@ -652,7 +681,7 @@ class ElectrolysisMoritz:
                 i+=1
                 #print(total_production)
             
-            print("Die Produktion von {}kg Wasserstoff dauert {} Stunden".format(self.production_H2,(count_additions/(60/self.dt))))
+            print("Die Produktion von {} {} Wasserstoff dauert {} {}".format(self.production_H2_,self.unit_H2,(count_additions*self.dt_1),self.dt_2))
             
 
            

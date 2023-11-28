@@ -1,12 +1,14 @@
 import pandas as pd
 from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz #importieren der klasse
 
+#TODO: wöfür die +40 bei H20
+
 
 #import windenergy timeseries
 
 
 #ts=pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\wind.csv', sep=',', decimal='.',nrows=29)#, header=3
-ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=100)
+ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=20)
 #ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
 #ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=100)
 
@@ -17,7 +19,7 @@ ts['time']=0
 
 
 #definieren eines elektrolyseurs mit der Klasse Electrolyzer
-electrolyzer = ElectrolysisMoritz(1,"mW",350,15,"m",0.1)  #kw,Einheit P, bar, dt, Einheit zeit, wie viel zeit für ... kg wasserstoff
+electrolyzer = ElectrolysisMoritz(1,"mW",350,15,"s",300,'g')  #kw,Einheit P, bar, dt, Einheit zeit, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen von Funktionen
 #Hier Wasserstoffproduktion
@@ -27,8 +29,8 @@ electrolyzer.prepare_timeseries(ts)
 print(ts)
 ts.to_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_output.csv', index=False)
 
-print(electrolyzer.create_polarization().iloc[504,0])
-print(electrolyzer.stack_nominal())
+#print(electrolyzer.create_polarization().iloc[504,0])
+#print(electrolyzer.stack_nominal())
 
 excel_file_path = r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_output.xlsx'
 ts.to_excel(excel_file_path, index=False)
