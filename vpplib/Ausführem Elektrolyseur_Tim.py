@@ -1,5 +1,5 @@
 import pandas as pd
-from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz #importieren der klasse
+from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz 
 
 #TODO: wöfür die +40 bei H20
 
@@ -11,10 +11,9 @@ ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib
 
 
 
-#ts['P_in [KW]'] = round(ts['P_in [KW]']/100,2)
+#Leistungsanpassung
 ts['P_ac'] = round(ts['P_ac']/100,2)
-#print(ts)
-#ts['time']=0
+ts['time']=0
 
 
 #definieren eines elektrolyseurs mit der Klasse Electrolyzer

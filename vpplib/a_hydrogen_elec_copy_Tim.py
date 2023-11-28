@@ -97,7 +97,7 @@ class ElectrolysisMoritz:
         
        
         
-    def status_codes(self,df):      #tabelle
+    def status_codes(self,df):      
       
         long_gap_threshold = math.ceil(60 / self.dt)
         short_gap_threshold = math.ceil(5 / self.dt)
@@ -155,7 +155,7 @@ class ElectrolysisMoritz:
         })
         return df
     
-    def calc_cell_voltage(self, I, T):         #Einheit: V
+    def calc_cell_voltage(self, I, T):         
         """
         I [Adc]: stack current
         T [degC]: stack temperature
@@ -251,7 +251,7 @@ class ElectrolysisMoritz:
 
         plt.show()
 
-    def stack_nominal(self):                #Einheit: KW
+    def stack_nominal(self):               
         '''
         stack nominal in kW
         :return:
@@ -291,7 +291,7 @@ class ElectrolysisMoritz:
 
         return eta_f
 
-    def power_electronics(self, P_nominal, P_ac):   #tabelle            #Einheit: KW
+    def power_electronics(self, P_nominal, P_ac):  
         '''
         P_nominal: Electrolyzer Size in kW
         P_ac: P_in [KW]
@@ -310,7 +310,7 @@ class ElectrolysisMoritz:
 
         return P_electronics
 
-    def power_dc(self, P_ac):                  #Einheit: KW
+    def power_dc(self, P_ac):                 
         '''
         :param P_ac:
         :return:
@@ -319,7 +319,7 @@ class ElectrolysisMoritz:
         #P_dc = P_ac - self.power_electronics(P_ac, self.P_nominal/100)
         return P_dc
 
-    def run(self, P_dc):        #tabelle        #Einheit: kg/dt
+    def run(self, P_dc):        
         """
         P_in [KW] [kWdc]: stack power input
         return :: H2_mfr [kg/dt]: hydrogen mass flow rate
@@ -334,7 +334,7 @@ class ElectrolysisMoritz:
 
         return H2_mfr
 
-    def calc_O_mfr(self, H2_mfr):       #tabelle        #Einheit:kg/dt
+    def calc_O_mfr(self, H2_mfr):       
         '''
         H2_mfr = massen flow rate H2 in kg/dt
         return: Oxygen flow rate in kg/dt
@@ -344,7 +344,7 @@ class ElectrolysisMoritz:
         O_mfr = O_mfr_m3*roh_O
         return O_mfr    #kg/dt
 
-    def calc_H2O_mfr(self, H2_mfr):     #tabelle        #Einheit: kg/dt                 #9kg wasser pro 1kg wasserstoff
+    def calc_H2O_mfr(self, H2_mfr):                      #9kg wasser pro 1kg wasserstoff
         '''
         H2_mfr: Hydrogen mass flow in kg
         O_mfr: Oxygen mass flow in kg
@@ -360,7 +360,7 @@ class ElectrolysisMoritz:
 
         return H2O_mfr  #kg/dt
 
-    def gas_drying(self,H2_mfr):    #tabelle        
+    def gas_drying(self,H2_mfr):          
         '''
         input n_h2: mass flow in kg/dt
         :param n_H2:
@@ -382,7 +382,7 @@ class ElectrolysisMoritz:
         P_gasdrying = (P_hz + Q_des)/1000 #in kW 
         return P_gasdrying  #kw
 
-    def compression(self,p2,H2_mfr):       #tabelle
+    def compression(self,p2,H2_mfr):       
         '''
         :param p2: needed pressure in bar
         :param T: electrolyze temperature
@@ -409,7 +409,7 @@ class ElectrolysisMoritz:
 
         return P_compression    #kw
 
-    def heat_cell(self, P_dc):          #tabelle
+    def heat_cell(self, P_dc):          
         '''
         P_dc: in kW
         return: q cell in kW
@@ -421,7 +421,7 @@ class ElectrolysisMoritz:
         q_cell = (self.n_cells*(U_cell - V_th)*I)/1000
         return q_cell       #kW
 
-    def heat_sys(self, q_cell,H2O_mfr):  #hier könnte noch ein fehler sein 
+    def heat_sys(self, q_cell,H2O_mfr):   
         '''
         q_cell: in kW
         H20_mfr: in kg/dt
@@ -437,7 +437,7 @@ class ElectrolysisMoritz:
         #q_loss=q_cell
         return q_loss   #kw
 
-    def calc_mfr_cool(self, q_loss):  #tabelle
+    def calc_mfr_cool(self, q_loss):  
         '''
         q_system in kW
         return: mfr cooling water in kg/dt
@@ -450,7 +450,7 @@ class ElectrolysisMoritz:
 
         return mfr_cool
 
-    def calc_pump(self, H2O_mfr, P_in):     #tabelle
+    def calc_pump(self, H2O_mfr, P_in):     
         '''
         H2O_mfr: in kg/dt
         P_stack: kw
@@ -511,14 +511,13 @@ class ElectrolysisMoritz:
             ts['H20 [kg/dt]'] = 0.0
             ts['Oxygen [kg/dt]'] = 0.0
             ts['cooling Water [kg/dt]'] = 0.0
-            
-            ts['compression [%]'] = 0.0
-            ts['electrolyzer {%]'] = 0.0
-            ts['gasdrying {%]'] = 0.0
-            ts['electromics [%]'] = 0.0
-            ts['pump [%]'] = 0.0
             ts['Heat Cell [%]'] = 0.0
             ts['heat system [%]'] = 0.0
+            ts['electrolyzer {%]'] = 0.0
+            ts['gasdrying {%]'] = 0.0
+            ts['electronics [%]'] = 0.0
+            ts['pump [%]'] = 0.0
+            ts['compression [%]'] = 0.0
             ts['efficiency [%]'] = 0.0
             ts['efficency _c [%]'] = 0.0
             
@@ -566,7 +565,7 @@ class ElectrolysisMoritz:
                         
                         #electronics
                         electronics=self.power_electronics(self.P_nominal,ts.loc[ts.index[i], 'P_in [KW]'])    
-                        ts.loc[ts.index[i], 'electromics [%]'] = round((electronics/ts.loc[ts.index[i], 'P_in [KW]'])*100,2)
+                        ts.loc[ts.index[i], 'electronics [%]'] = round((electronics/ts.loc[ts.index[i], 'P_in [KW]'])*100,2)
                         
                         # heat_cell %
                         Heat_Cell_kW=self.heat_cell(ts.loc[ts.index[i], 'P_in [KW]'])
@@ -585,11 +584,11 @@ class ElectrolysisMoritz:
                         ts.loc[ts.index[i], 'cooling Water [kg/dt]']=round(cooling_water,2)
                         #---------------------------------------------------------------------------------------------------------------------------------------
                         #efficiency
-                        efficiency=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/ts.loc[ts.index[i], 'P_in [KW]'])*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'electromics [%]']
+                        efficiency=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/ts.loc[ts.index[i], 'P_in [KW]'])*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'electronics [%]']
                         ts.loc[ts.index[i], 'efficiency [%]'] = round(efficiency,2)
                         
                         #efficency with compression
-                        efficency_with_compression=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/ts.loc[ts.index[i], 'P_in [KW]'])*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'compression [%]']-ts.loc[ts.index[i], 'electromics [%]']
+                        efficency_with_compression=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/ts.loc[ts.index[i], 'P_in [KW]'])*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'compression [%]']-ts.loc[ts.index[i], 'electronics [%]']
                         ts.loc[ts.index[i], 'efficency _c [%]'] = round(efficency_with_compression,2)
                         #---------------------------------------------------------------------------------------------------------------------------------------------
                     
@@ -631,7 +630,7 @@ class ElectrolysisMoritz:
                         
                         #electronics
                         electronics=self.power_electronics(self.P_nominal,self.P_nominal)    
-                        ts.loc[ts.index[i], 'electromics [%]'] = round((electronics/self.P_nominal)*100,2)
+                        ts.loc[ts.index[i], 'electronics [%]'] = round((electronics/self.P_nominal)*100,2)
                         
                         # heat_cell %
                         Heat_Cell_kW=self.heat_cell(self.P_nominal)
@@ -650,11 +649,11 @@ class ElectrolysisMoritz:
                         ts.loc[ts.index[i], 'cooling Water [kg/dt]']=round(cooling_water,2)
                         #---------------------------------------------------------------------------------------------------------------------------------------
                         #efficiency
-                        efficiency=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/self.P_nominal)*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'electromics [%]']
+                        efficiency=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/self.P_nominal)*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'electronics [%]']
                         ts.loc[ts.index[i], 'efficiency [%]'] = round(efficiency,2)
                         
                         #efficency with compression
-                        efficency_with_compression=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/self.P_nominal)*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'compression [%]']-ts.loc[ts.index[i], 'electromics [%]']
+                        efficency_with_compression=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/self.P_nominal)*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'compression [%]']-ts.loc[ts.index[i], 'electronics [%]']
                         ts.loc[ts.index[i], 'efficency _c [%]'] = round(efficency_with_compression,2)
                         #---------------------------------------------------------------------------------------------------------------------------------------------
                     
