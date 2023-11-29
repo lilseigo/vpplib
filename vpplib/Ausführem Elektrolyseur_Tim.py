@@ -5,7 +5,7 @@ from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz
 
 #Import der Eingangsleistung
 
-ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=10)
+ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=50)
 #ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
 #ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=20)
 
@@ -18,31 +18,35 @@ ts['time']=0
 
 #-------------------------------------------------------------------------------------------------
 #test mit input
-aa = input("Bitte geben Sie die Elektrolyseur-Größe und die Einheit an! (z.B. 10MW) ")
-a = ''.join([c for c in aa if c.isnumeric() or c == '.'])
-b = ''.join([c for c in aa if c.isalpha()])
+# aa = input("Bitte geben Sie die Elektrolyseur-Größe und die Einheit an! (z.B. 10MW) ")
+# a = ''.join([c for c in aa if c.isnumeric() or c == '.'])
+# b = ''.join([c for c in aa if c.isalpha()])
 
-# ---------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
 
-cc = input("Bitte geben Sie die Zeiteinheit an! (z.B. 15m) ")
-c = ''.join([c for c in cc if c.isnumeric() or c == '.'])
-d = ''.join([c for c in cc if c.isalpha()])
+# cc = input("Bitte geben Sie die Zeiteinheit an! (z.B. 15m) ")
+# c = ''.join([c for c in cc if c.isnumeric() or c == '.'])
+# d = ''.join([c for c in cc if c.isalpha()])
 
-# ---------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
 
-e = input("Bitte geben Sie den Druck an, auf den der Wasserstoff komprimiert werden soll!")
+# e = input("Bitte geben Sie den Druck an, auf den der Wasserstoff komprimiert werden soll!")
 
-# ---------------------------------------------------------------------------
+# # ---------------------------------------------------------------------------
 
-ff = input("Bitte geben Sie an, wie viel Wasserstoff produziert werden muss! (z.B. 10kg) ")
-f = ''.join([c for c in ff if c.isnumeric() or c == '.'])
-g = ''.join([c for c in ff if c.isalpha()])
+# ff = input("Bitte geben Sie an, wie viel Wasserstoff produziert werden muss! (z.B. 10kg) ")
+# if not ff.strip():
+#     f=""
+#     g=""
+# else:
+#     f = ''.join([c for c in ff if c.isnumeric() or c == '.'])
+#     g = ''.join([c for c in ff if c.isalpha()])
 
-electrolyzer = ElectrolysisMoritz(a,b,c,d,e,f,g)
+# electrolyzer = ElectrolysisMoritz(a,b,c,d,e,f,g)
 #--------------------------------------------------------------------------------------------------------------------------
 
 
-#electrolyzer = ElectrolysisMoritz("1","mw","15","m","350","5","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
+electrolyzer = ElectrolysisMoritz("500","Kw","15.7","m","700","40","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)
