@@ -6,10 +6,11 @@ from scipy.signal import tf2ss, cont2discrete
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.optimize import minimize_scalar
+from scipy.optimize import fsolve
 
 class ElectrolysisMoritz:
     
-    def __init__(self,P_elektrolyseur,unit_P,p2,dt_1,unit_dt,production_H2_,unit_production_H2):
+    def __init__(self,P_elektrolyseur_,unit_P,dt_1,unit_dt,p2,production_H2_,unit_production_H2):
 
            
         # Constants
@@ -25,48 +26,87 @@ class ElectrolysisMoritz:
         self.roh_O = 1.429 #Density kg/m3
         self.T = 50 # Grad Celsius
         self.p2=p2 #bar compression
+        
 
-        #units
+        P_elektrolyseur=P_elektrolyseur_
+        self.P_elektrolyseur_=P_elektrolyseur_
+
+        #----------------------------------------------------------------
+        #Überprüfung der Zahlenwerte die benötigt werden
+        
+        
+
+        try:
+            P_elektrolyseur = float(P_elektrolyseur)
+        except ValueError:
+            raise ValueError("Bitte überprüfen Sie die Eingabe der Elektrolyseur-Größe. Es sollten Zahlen oder Kommazahlen sein.")
+        
+
+        try:
+            dt_1 = float(dt_1)
+        except ValueError:
+            raise ValueError("Bitte überprüfen Sie die Eingabe des Zeitschrittes. Es sollten Zahlen oder Kommazahlen sein.")
+
+        
+        #---------------------------------------------------------------------
         #units_P W, KW, MW, GW
         self.unit_P =unit_P
 
         if self.unit_P.lower() =="w":
             P_elektrolyseur =P_elektrolyseur/1000
+            self.unit_P_2="W"
         elif self.unit_P.lower() =="kw":
            P_elektrolyseur =P_elektrolyseur
+           self.unit_P_2="KW"
         elif self.unit_P.lower() =="mw":
             P_elektrolyseur =P_elektrolyseur*1000
+            self.unit_P_2="MW"
         elif self.unit_P.lower() =="gw":
             P_elektrolyseur =P_elektrolyseur*1000*1000
+            self.unit_P_2="GW"
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW,GW") 
-        
+        #----------------------------------------------------------------------
         #Units_dt S, M, H,D     
         self.unit_dt=unit_dt
         self.dt_1=dt_1
         if self.unit_dt.lower() =="s": # second
             self.dt=self.dt_1/60
-            self.dt_2="Sekunden"
+            self.dt_2="Sekunde/n"
             
         elif self.unit_dt.lower() =="m": # minute
             self.dt=self.dt_1
-            self.dt_2="Minuten"
+            self.dt_2="Minute/n"
             
         elif self.unit_dt.lower() =="h": # hour
             self.dt=self.dt_1*60
-            self.dt_2="Stunden"
+            self.dt_2="Stunde/n"
             
         elif self.unit_dt.lower() =="d": # days
             self.dt=self.dt_1*60*24
-            self.dt_2="Tage"
+            self.dt_2="Tag/e"
             
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H,D") 
+        #------------------------------------------------------------------------------
         
         #units_H2 G, KG, T,
         self.unit_production_H2 =unit_production_H2
         self.production_H2_=production_H2_
         self.production_H2=production_H2_
+
+        #Wenn keine Eingabe bei benötigter wasserstoffmenge dann wird Diese auf 0 gesetzt und nicht angezeigt weiterer Teil der funktion ca. 685-700
+        
+        if self.production_H2_ == "":
+            self.production_H2 = 0
+            self.production_H2_ = 0
+        else:
+            try:
+                self.production_H2_ = float(self.production_H2_)
+                self.production_H2 = int(self.production_H2_)
+            except ValueError:
+                self.production_H2 = 0
+                self.production_H2_ = 0
 
         if self.unit_production_H2.lower() =="g":
             self.unit_production=self.production_H2
@@ -78,9 +118,14 @@ class ElectrolysisMoritz:
         elif self.unit_production_H2.lower() =="t":
             self.production_H2=self.production_H2*1000
             self.unit_H2="Tonnen"
+        elif self.unit_production_H2 =="":
+            self.production_H2=0
+            self.production_H2_=0
+            self.unit_H2=""
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit des zu erzeugendem Wasserstoffs! Derzeit sind die Möglickeiten G,Kg,T") 
-        
+        #------------------------------------------------------------------
+        self.P_elektrolyseur=P_elektrolyseur #kw
         self.P_nominal = P_elektrolyseur    #kW
         self.P_min = self.P_nominal * 0.1   #kW
         self.P_max = self.P_nominal         #kW
@@ -94,8 +139,6 @@ class ElectrolysisMoritz:
 
         self.p_atmo = 101325 #2000000  # (Pa) atmospheric pressure / pressure of water
         self.p_anode = self.p_atmo  # (Pa) pressure at anode, assumed atmo
-        
-       
         
     def status_codes(self,df):      
       
@@ -355,7 +398,7 @@ class ElectrolysisMoritz:
 
         ratio_M = M_H2O/self.M # (mol/g)/(mol/g)
         #H2O_mfr = H2_mfr * ratio_M + 40#H2O_mfr in kg  #alt wofür die +40?
-        H2O_mfr = H2_mfr * ratio_M+40*(60/self.dt)
+        H2O_mfr = H2_mfr * ratio_M#+40*(60/self.dt)
         #H2O_mfr = H2O_mfr_kg / roh_H2O
 
         return H2O_mfr  #kg/dt
@@ -397,14 +440,24 @@ class ElectrolysisMoritz:
         kk = k / (k - 1)
         eta_Ver = 0.75
         #w_isentrop = kk * self.R * T2 * Z*(((p2 / p1)**kk) - 1)*H2_mfr #alt
-        w_isentrop = kk * self.R * T2 *Z*((p2 / p1)**((k-1)/k) - 1)
+        
+        # wenn kein Druck angegeben wird, wird nicht komprimiert
+        if p2 =="":
+            p2=0
+            w_isentrop=0
+        elif not p2.isdigit(): # Wenn p2 kein numerischer Wert ist zb. Buchstabe 
+            p2 = 0
+            w_isentrop = 0
+        elif int(p2) <30:
+            raise ValueError("Der Wert auf den zu komprimierenden Druck muss größer 30 Bar sein!")
+        elif int(p2) >=30:
+            w_isentrop = kk * self.R * T2 *Z*((int(p2) / p1)**((k-1)/k) - 1)
+        else:
+           raise ValueError("Bitte überprüfen Sie die Einheit auf den zu kompremierenden Druck")
+        
         
         #T2 = T*(p2 / p1) ** kk
         #P_compression = (((w_isentrop/self.M)/1000) * (1/60*self.dt)) / eta_Ver  #alt
-        #P_compression = ((w_isentrop/(60*self.dt))/eta_Ver)/1000
-        #P_compression = ((w_isentrop/self.M)/1000)/eta_Ver 
-        #P_compression = (((w_isentrop/self.M) / eta_Ver )/1000)
-        #P_compression = ((((w_isentrop)*((H2_mfr/self.M)*(self.dt/60))))/eta_Ver)
         P_compression=((w_isentrop*H2_mfr*(60/self.dt))/eta_Ver)/1000
 
         return P_compression    #kw
@@ -484,9 +537,6 @@ class ElectrolysisMoritz:
         P_gesamt=(P_pump_fresh+ P_pump_cool)#kw
         return P_gesamt #kw
 
-    
-    
-    
     def prepare_timeseries(self, ts):
         #prüft ob der elektrolyseur in der 500 klasse liegt
         if self.P_nominal % 500 != 0:
@@ -667,23 +717,55 @@ class ElectrolysisMoritz:
                 else:
                     ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]']
 
-            #Wie lange dauert die produktion des Wasserstoffs
-            for i in ts.index:
-                total_production = 0
-                count_additions = 0
-                i=0
+            #Wasserstoffproduktion
+            
+            if self.production_H2>0:
+                for i in ts.index:
+                    total_production = 0
+                    count_additions = 0
+                    i=0
                 # Solange die Gesamtproduktion kleiner als ... ist, addiere den aktuellen Wert
-            while total_production <= self.production_H2:
+                while total_production <= self.production_H2:
                 #total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
-                total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
-                count_additions += 1
-                i+=1
-                #print(total_production)
-            
-            print("Die Produktion von {} {} Wasserstoff dauert {} {}".format(self.production_H2_,self.unit_H2,(count_additions*self.dt_1),self.dt_2))
-            
+                    total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
+                    count_additions += 1
+                    i+=1
+                #Volumenberechnung  des Kompremierten Wasserstoff
+                P = int(self.p2)  # Druck in Bar
+                T = 15+273.15  # Temperatur in Kelvin
+                mass_hydrogen_kg = self.production_H2  #kg
+                molar_mass_hydrogen = 2.016  # Molare Masse von Wasserstoff in g/mol
+                initial_n = mass_hydrogen_kg * 1000 / molar_mass_hydrogen  # Stoffmenge in Mol
 
-           
+                a = 0.244  # Van-der-Waals-Koeffizient a für Wasserstoff in (L^2*bar)/(mol^2)
+                b = 0.0266  # Van-der-Waals-Koeffizient b für Wasserstoff in L/mol
+                R = 0.08314  # Universelle Gaskonstante in (L*bar)/(mol*K)
+
+                # Umstellung der Van-der-Waals-Gleichung nach Volumen
+                def van_der_waals_equation(V):
+                    return (P + (a * initial_n**2) / V**2) * (V - b * initial_n) - initial_n * R * T
+
+                #ideales Gasgesetz
+                V_ideal = (initial_n*R*T)/P  
+
+                # Numerische Berechnung des Volumens
+                V_solution = round(fsolve(van_der_waals_equation, V_ideal)[0]/1000,2)
+
+
+                def van_der_waals_equation_2(V_2):
+                    return (30 + (a * initial_n**2) / V_2**2) * (V_2 - b * initial_n) - initial_n * R * T
+
+                #ideales Gasgesetz
+                V_ideal_2 = (initial_n*R*T)/30  
+
+                # Numerische Berechnung des Volumens
+                V_solution_2 = round(fsolve(van_der_waals_equation_2, V_ideal_2)[0]/1000,2)
+            
+                print("Die Produktion von {} {} Wasserstoff dauert {} {} und hat nach der Kompression auf {} Bar ein Volumen von {} m^2! Dadurch reduziert sich ca. das Volumen um das {}-Fache".format(self.production_H2_,self.unit_H2,(round(count_additions*self.dt_1,2)),self.dt_2,self.p2,V_solution,(round(V_ideal_2/V_ideal))))
+            print("Diese Werte gelten für einen Elektrolyseur mit einer Leistung von {} {} und einem Zeitschritt von {} {}!".format(self.P_elektrolyseur_, self.unit_P_2, self.dt_1, self.dt_2))
+
+
+        
     
     
             return ts
