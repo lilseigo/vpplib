@@ -9,7 +9,7 @@ from scipy.optimize import minimize_scalar
 
 class ElectrolysisMoritz:
     
-    def __init__(self,P_elektrolyseur,unit_P,p2,dt_1,unit_dt,production_H2_,unit_production_H2):
+    def __init__(self,P_elektrolyseur,unit_P,dt_1,unit_dt,p2,production_H2_,unit_production_H2):
 
            
         # Constants
@@ -25,8 +25,20 @@ class ElectrolysisMoritz:
         self.roh_O = 1.429 #Density kg/m3
         self.T = 50 # Grad Celsius
         self.p2=p2 #bar compression
-
-        #units
+        #----------------------------------------------------------------
+        #Überprüfung der Zahlenwerte die benötigt werden
+        #Elektrolyseur
+        if not P_elektrolyseur.isdigit():
+            raise ValueError("Bitte überprüfen Sie die Eingabe der Elektrolyseur-Größe")
+        else: 
+            P_elektrolyseur=int(P_elektrolyseur)
+        #Zeitschritt dt
+        if not dt_1.isdigit():
+            raise ValueError("Bitte überprüfen Sie die Eingabe des Zeitschrittes")
+        else: 
+            dt_1=int(dt_1)
+        
+        #---------------------------------------------------------------------
         #units_P W, KW, MW, GW
         self.unit_P =unit_P
 
@@ -40,7 +52,7 @@ class ElectrolysisMoritz:
             P_elektrolyseur =P_elektrolyseur*1000*1000
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW,GW") 
-        
+        #----------------------------------------------------------------------
         #Units_dt S, M, H,D     
         self.unit_dt=unit_dt
         self.dt_1=dt_1
@@ -62,12 +74,28 @@ class ElectrolysisMoritz:
             
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H,D") 
+        #------------------------------------------------------------------------------
         
         #units_H2 G, KG, T,
         self.unit_production_H2 =unit_production_H2
         self.production_H2_=production_H2_
         self.production_H2=production_H2_
 
+        #Wenn keine Eingabe bei benötigter wasserstoffmenge dann wird Diese auf 0 gesetzt und nicht angezeigt weiterer Teil der funktion ca. 685-700
+        if self.production_H2_ =="":
+            self.production_H2=0
+            self.production_H2_=0
+            
+        elif not production_H2_.isdigit(): 
+            self.production_H2=0
+            self.production_H2_=0
+            
+        else:
+            self.production_H2_=int(production_H2_)
+            self.production_H2=int(production_H2_)
+            
+        
+        
         if self.unit_production_H2.lower() =="g":
             self.unit_production=self.production_H2
             self.unit_H2="Gramm"
@@ -78,8 +106,13 @@ class ElectrolysisMoritz:
         elif self.unit_production_H2.lower() =="t":
             self.production_H2=self.production_H2*1000
             self.unit_H2="Tonnen"
+        elif self.unit_production_H2 =="":
+            self.production_H2=0
+            self.production_H2_=0
+            self.unit_H2=""
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit des zu erzeugendem Wasserstoffs! Derzeit sind die Möglickeiten G,Kg,T") 
+        #------------------------------------------------------------------
         
         self.P_nominal = P_elektrolyseur    #kW
         self.P_min = self.P_nominal * 0.1   #kW
@@ -355,7 +388,7 @@ class ElectrolysisMoritz:
 
         ratio_M = M_H2O/self.M # (mol/g)/(mol/g)
         #H2O_mfr = H2_mfr * ratio_M + 40#H2O_mfr in kg  #alt wofür die +40?
-        H2O_mfr = H2_mfr * ratio_M+40*(60/self.dt)
+        H2O_mfr = H2_mfr * ratio_M#+40*(60/self.dt)
         #H2O_mfr = H2O_mfr_kg / roh_H2O
 
         return H2O_mfr  #kg/dt
@@ -397,14 +430,24 @@ class ElectrolysisMoritz:
         kk = k / (k - 1)
         eta_Ver = 0.75
         #w_isentrop = kk * self.R * T2 * Z*(((p2 / p1)**kk) - 1)*H2_mfr #alt
-        w_isentrop = kk * self.R * T2 *Z*((p2 / p1)**((k-1)/k) - 1)
+        
+        # wenn kein Druck angegeben wird, wird nicht komprimiert
+        if p2 =="":
+            p2=0
+            w_isentrop=0
+        elif not p2.isdigit(): # Wenn p2 kein numerischer Wert ist zb. Buchstabe 
+            p2 = 0
+            w_isentrop = 0
+        elif int(p2) <30:
+            raise ValueError("Der Wert auf den zu komprimierenden Druck muss größer 30 Bar sein!")
+        elif int(p2) >30:
+            w_isentrop = kk * self.R * T2 *Z*((int(p2) / p1)**((k-1)/k) - 1)
+        else:
+           raise ValueError("Bitte überprüfen Sie die Einheit auf den zu kompremierenden Druck")
+        
         
         #T2 = T*(p2 / p1) ** kk
         #P_compression = (((w_isentrop/self.M)/1000) * (1/60*self.dt)) / eta_Ver  #alt
-        #P_compression = ((w_isentrop/(60*self.dt))/eta_Ver)/1000
-        #P_compression = ((w_isentrop/self.M)/1000)/eta_Ver 
-        #P_compression = (((w_isentrop/self.M) / eta_Ver )/1000)
-        #P_compression = ((((w_isentrop)*((H2_mfr/self.M)*(self.dt/60))))/eta_Ver)
         P_compression=((w_isentrop*H2_mfr*(60/self.dt))/eta_Ver)/1000
 
         return P_compression    #kw
@@ -668,19 +711,21 @@ class ElectrolysisMoritz:
                     ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]']
 
             #Wie lange dauert die produktion des Wasserstoffs
-            for i in ts.index:
-                total_production = 0
-                count_additions = 0
-                i=0
+            
+            if self.production_H2>0:
+                for i in ts.index:
+                    total_production = 0
+                    count_additions = 0
+                    i=0
                 # Solange die Gesamtproduktion kleiner als ... ist, addiere den aktuellen Wert
-            while total_production <= self.production_H2:
+                while total_production <= self.production_H2:
                 #total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
-                total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
-                count_additions += 1
-                i+=1
+                    total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
+                    count_additions += 1
+                    i+=1
                 #print(total_production)
             
-            print("Die Produktion von {} {} Wasserstoff dauert {} {}".format(self.production_H2_,self.unit_H2,(count_additions*self.dt_1),self.dt_2))
+                print("Die Produktion von {} {} Wasserstoff dauert {} {}".format(self.production_H2_,self.unit_H2,(count_additions*self.dt_1),self.dt_2))
             
 
            
