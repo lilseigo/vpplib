@@ -4,7 +4,7 @@ from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz
 #TODO: wöfür die +40 bei H20
 
 #Import der Eingangsleistung
-
+ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_PV_ninja.csv', sep=',', decimal='.',nrows=50)
 ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=50)
 #ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
 #ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=20)
