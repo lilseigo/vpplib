@@ -140,8 +140,6 @@ class ElectrolysisMoritz:
         self.p_atmo = 101325 #2000000  # (Pa) atmospheric pressure / pressure of water
         self.p_anode = self.p_atmo  # (Pa) pressure at anode, assumed atmo
         
-       
-        
     def status_codes(self,df):      
       
         long_gap_threshold = math.ceil(60 / self.dt)
@@ -452,7 +450,7 @@ class ElectrolysisMoritz:
             w_isentrop = 0
         elif int(p2) <30:
             raise ValueError("Der Wert auf den zu komprimierenden Druck muss größer 30 Bar sein!")
-        elif int(p2) >30:
+        elif int(p2) >=30:
             w_isentrop = kk * self.R * T2 *Z*((int(p2) / p1)**((k-1)/k) - 1)
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit auf den zu kompremierenden Druck")
@@ -735,9 +733,9 @@ class ElectrolysisMoritz:
                 #Volumenberechnung  des Kompremierten Wasserstoff
                 P = int(self.p2)  # Druck in Bar
                 T = 15+273.15  # Temperatur in Kelvin
-                mass_hydrogen_kg = self.production_H2_  # Anfangsmasse in kg
+                mass_hydrogen_kg = self.production_H2  #kg
                 molar_mass_hydrogen = 2.016  # Molare Masse von Wasserstoff in g/mol
-                initial_n = mass_hydrogen_kg * 1000 / molar_mass_hydrogen  # Anfangsstoffmenge in Mol
+                initial_n = mass_hydrogen_kg * 1000 / molar_mass_hydrogen  # Stoffmenge in Mol
 
                 a = 0.244  # Van-der-Waals-Koeffizient a für Wasserstoff in (L^2*bar)/(mol^2)
                 b = 0.0266  # Van-der-Waals-Koeffizient b für Wasserstoff in L/mol
@@ -752,8 +750,18 @@ class ElectrolysisMoritz:
 
                 # Numerische Berechnung des Volumens
                 V_solution = round(fsolve(van_der_waals_equation, V_ideal)[0]/1000,2)
+
+
+                def van_der_waals_equation_2(V_2):
+                    return (30 + (a * initial_n**2) / V_2**2) * (V_2 - b * initial_n) - initial_n * R * T
+
+                #ideales Gasgesetz
+                V_ideal_2 = (initial_n*R*T)/30  
+
+                # Numerische Berechnung des Volumens
+                V_solution_2 = round(fsolve(van_der_waals_equation_2, V_ideal_2)[0]/1000,2)
             
-                print("Die Produktion von {} {} Wasserstoff dauert {} {} und hat ein Volumen von {} m^2".format(self.production_H2_,self.unit_H2,(round(count_additions*self.dt_1,2)),self.dt_2,V_solution))
+                print("Die Produktion von {} {} Wasserstoff dauert {} {} und hat nach der Kompression auf {} Bar ein Volumen von {} m^2! Dadurch reduziert sich ca. das Volumen um das {}-Fache".format(self.production_H2_,self.unit_H2,(round(count_additions*self.dt_1,2)),self.dt_2,self.p2,V_solution,(round(V_ideal_2/V_ideal))))
             print("Diese Werte gelten für einen Elektrolyseur mit einer Leistung von {} {} und einem Zeitschritt von {} {}!".format(self.P_elektrolyseur_, self.unit_P_2, self.dt_1, self.dt_2))
 
 

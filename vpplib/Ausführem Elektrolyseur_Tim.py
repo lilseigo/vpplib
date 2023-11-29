@@ -12,7 +12,7 @@ ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib
 
 
 #Leistungsanpassung
-ts['P_ac'] = round(ts['P_ac']/100,2)
+ts['P_ac'] = round(ts['P_ac']*100,2)
 ts['time']=0
 
 
@@ -46,7 +46,7 @@ ts['time']=0
 #--------------------------------------------------------------------------------------------------------------------------
 
 
-electrolyzer = ElectrolysisMoritz("500","Kw","15.7","m","700","40","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
+electrolyzer = ElectrolysisMoritz("100","mw","1","d","700","41","t")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)
