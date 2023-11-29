@@ -46,7 +46,7 @@ ts['time']=0
 #--------------------------------------------------------------------------------------------------------------------------
 
 
-electrolyzer = ElectrolysisMoritz("100","mw","1","d","700","41","t")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
+electrolyzer = ElectrolysisMoritz("100","mw","1","d","700","1230","t")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)

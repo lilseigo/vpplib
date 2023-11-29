@@ -72,19 +72,19 @@ class ElectrolysisMoritz:
         self.dt_1=dt_1
         if self.unit_dt.lower() =="s": # second
             self.dt=self.dt_1/60
-            self.dt_2="Sekunden"
+            self.dt_2="Sekunde/n"
             
         elif self.unit_dt.lower() =="m": # minute
             self.dt=self.dt_1
-            self.dt_2="Minuten"
+            self.dt_2="Minute/n"
             
         elif self.unit_dt.lower() =="h": # hour
             self.dt=self.dt_1*60
-            self.dt_2="Stunden"
+            self.dt_2="Stunde/n"
             
         elif self.unit_dt.lower() =="d": # days
             self.dt=self.dt_1*60*24
-            self.dt_2="Tage"
+            self.dt_2="Tag/e"
             
         else:
            raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H,D") 
