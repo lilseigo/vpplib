@@ -4,7 +4,7 @@ from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz
 #TODO: wöfür die +40 bei H20
 
 #Import der Eingangsleistung
-ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_PV_ninja.csv', sep=',', decimal='.',nrows=50)
+#ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_PV_ninja.csv', sep=',', decimal='.')  #nrows=50
 ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=50)
 #ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
 #ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=20)
@@ -12,7 +12,7 @@ ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib
 
 
 #Leistungsanpassung
-ts['P_ac'] = round(ts['P_ac']*100,2)
+ts['P_ac'] = round(ts['P_ac'],2)
 ts['time']=0
 
 
@@ -46,7 +46,7 @@ ts['time']=0
 #--------------------------------------------------------------------------------------------------------------------------
 
 
-electrolyzer = ElectrolysisMoritz("100","mw","1","d","700","1230","t")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
+electrolyzer = ElectrolysisMoritz("200","mw","1","h","700","1","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)
