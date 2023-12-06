@@ -82,15 +82,11 @@ class UserProfile(object):
         # Define the maximal connection power for a certain user
         self.max_connection_power = max_connection_power
 
-        if mean_temp_days is None:
-            self.mean_temp_days = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                                        'input/thermal/dwd_temp_days_2015.csv').replace('\\', '/'),
-                                            index_col='time')
-            self.mean_temp_days.index = pd.to_datetime(self.mean_temp_days.index)
-        else:
-            self.mean_temp_days = mean_temp_days
+        self.mean_temp_days = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)).replace('\\', '/'),
+                                                       "input/thermal/dwd_temp_days_2015.csv"),
+                                          index_col='time')
 
-        
+        self.mean_temp_days.index = pd.to_datetime(self.mean_temp_days.index)
         self.year = str(next(iter(self.mean_temp_days.index)))[:4]
 
         self.thermal_energy_demand = None

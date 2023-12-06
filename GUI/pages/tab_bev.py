@@ -13,7 +13,8 @@ dbc.Row([
                             dbc.Input(
                                 id='input_bev_max_battery_capacity',
                                 type='number',
-                                placeholder='e.g. 100 kWh'),
+                                placeholder='e.g. 100 kWh',
+                                value=50),
                             dbc.InputGroupText('kWh')
                     ])
                     ], width=2),
@@ -27,7 +28,8 @@ dbc.Row([
                             dbc.Input(
                                 id='input_bev_min_battery_capacity',
                                 type='number',
-                                placeholder='e.g. 15 kWh'
+                                placeholder='e.g. 15 kWh',
+                                value=10
                             ),
                             dbc.InputGroupText('kWh')
                     ])
@@ -41,7 +43,8 @@ dbc.Row([
                         dbc.Input(
                             id='input_bev_battery_usage',
                             type='number',
-                            placeholder='e.g. ???'
+                            placeholder='e.g. ???',
+                            value=1
                         )
                     ], width=2),
                 ]),
@@ -54,7 +57,8 @@ dbc.Row([
                             dbc.Input(
                                 id='input_bev_charging_power',
                                 type='number',
-                                placeholder='e.g. 11 kW'
+                                placeholder='e.g. 11 kW',
+                                value=11
                             ),
                             dbc.InputGroupText('kW')
                            ])
@@ -69,7 +73,8 @@ dbc.Row([
                             dbc.Input(
                                 id='input_bev_charging_efficiency',
                                 type='number',
-                                placeholder='e.g. 90%'
+                                placeholder='e.g. 90%',
+                                value=90
                             ),
                             dbc.InputGroupText('%')
                         ])
@@ -99,12 +104,12 @@ def update_bev_settings_store(n_clicks, max_battery_capacity,
                               min_battery_capacity, battery_usage, 
                               charging_power, charging_efficiency):
     if 'submit_bev_settings' ==ctx.triggered_id and n_clicks is not None:
-        data_bev_settings=pd.DataFrame({'max_battery_capacity': max_battery_capacity,
-                                        'min_battery_capacity': min_battery_capacity,
-                                        'battery_usage': battery_usage,
-                                        'charging_power': charging_power,
-                                        'charging_efficiency': charging_efficiency}, index=[0])
-        return data_bev_settings.to_dict('records')
+        data_bev_settings={'max_battery_capacity': max_battery_capacity,
+                            'min_battery_capacity': min_battery_capacity,
+                            'battery_usage': battery_usage,
+                            'charging_power': charging_power,
+                            'charging_efficiency': charging_efficiency/100}
+        return data_bev_settings
     
     elif n_clicks is None:
         raise PreventUpdate

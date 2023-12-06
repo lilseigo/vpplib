@@ -13,7 +13,9 @@ layout=dbc.Container([
                             dbc.Input(
                                 id='input_storage_charge_efficiency',
                                 type='number',
-                                placeholder='e.g. 90%'),
+                                placeholder='e.g. 90%',
+                                value=90),
+                                
                             dbc.InputGroupText('%')
                         ])
                         ], width=2)
@@ -27,7 +29,8 @@ layout=dbc.Container([
                             dbc.Input(
                                 id='input_storage_discharge_efficiency',
                                 type='number',
-                                placeholder='e.g. 90%'),
+                                placeholder='e.g. 90%',
+                                value=90),
                             dbc.InputGroupText('%')
                             ])
                         ], width=2)
@@ -41,7 +44,8 @@ layout=dbc.Container([
                                 dbc.Input(
                                     id='input_storage_max_power',
                                     type='number',
-                                    placeholder='e.g. 10 kW'),
+                                    placeholder='e.g. 10 kW',
+                                    value=10),
                                 dbc.InputGroupText('kW')
                             ])
                         ], width=2)
@@ -55,7 +59,8 @@ layout=dbc.Container([
                                 dbc.Input(
                                     id='input_storage_max_capacity',
                                     type='number',
-                                    placeholder='e.g. 10 kWh'),
+                                    placeholder='e.g. 10 kWh',
+                                    value=10),
                                 dbc.InputGroupText('kWh')
                             ])
                         ], width=2)
@@ -83,12 +88,12 @@ def update_storage(n_clicks, storage_charge_effciency, storage_discharge_efficie
     
     if 'submit_storage_settings' ==ctx.triggered_id and n_clicks is not None:
 
-        data_storage_settings=pd.DataFrame({'Charging Efficiency': storage_charge_effciency,
-                 'Discharging Efficiency': storage_discharge_efficiency,
-                 'Max. Power': storage_max_power,
-                 'Max. Capacity': storage_max_capacity}, index=[0])
+        data_storage_settings={'Charging Efficiency': storage_charge_effciency,
+                 'Discharging Efficiency': storage_discharge_efficiency/100,
+                 'Max. Power': storage_max_power/100,
+                 'Max. Capacity': storage_max_capacity}
         
-        return data_storage_settings.to_dict('records')
+        return data_storage_settings
     
     elif n_clicks is None:
         raise PreventUpdate

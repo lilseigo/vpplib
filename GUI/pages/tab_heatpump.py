@@ -16,7 +16,8 @@ dbc.Row([
                                 'color': 'black',
                                 'bgcolor': 'white',
                                 },
-                        placeholder='e.g. Air'
+                        placeholder='e.g. Air',
+                        value='Air'
                     )
                 ], width=2)
             ], style={'margin-top': '20px'}),
@@ -29,7 +30,8 @@ dbc.Row([
                         dbc.Input(
                             id='input_heatpump_system_temperature',
                             type='number',
-                            placeholder='e.g. 20.5 °C'
+                            placeholder='e.g. 20.5 °C',
+                            value=60
                         ),
                         dbc.InputGroupText('°C')
                     ])
@@ -44,7 +46,8 @@ dbc.Row([
                         dbc.Input(
                             id='input_heatpump_electrical_power',
                             type='number',
-                            placeholder='e.g. 5 kW'
+                            placeholder='e.g. 5 kW',
+                            value= 5
                         ),
                         dbc.InputGroupText('kW')
                     ])
@@ -68,10 +71,10 @@ dbc.Row([
      State('input_heatpump_electrical_power', 'value')]
 )
 def update_basic_settings_store(n_clicks, type_hp, temp_hp, power_hp):
-    if 'submit_basic_settings' ==ctx.triggered_id and n_clicks is not None:
-        data_basic_settings=pd.DataFrame({'Type Heatpump': type_hp,
+    if 'submit_hp_settings' ==ctx.triggered_id and n_clicks is not None:
+        data_heatpump={'Type Heatpump': type_hp,
                  'Heat System Temperature': temp_hp,
-                 'Power': power_hp,}, index=[0])
-        return data_basic_settings.to_dict('records')
+                 'Power': power_hp,}
+        return data_heatpump
     elif n_clicks is None:
         raise PreventUpdate

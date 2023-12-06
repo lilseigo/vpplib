@@ -20,7 +20,7 @@ import dash_bootstrap_components as dbc
 # from vpplib.virtual_power_plant import VirtualPowerPlant
 # from vpplib.operator import Operator
 
-from pages import tab_basic_settings, tab_environment, tab_user_profile, tab_bev, tab_pv, tab_wind, tab_heatpump, tab_storage, tab_results
+from pages import tab_basic_settings, tab_environment, tab_user_profile, tab_bev, tab_pv, tab_wind, tab_heatpump, tab_storage, tab_results, tab_test
 
 
 
@@ -64,19 +64,22 @@ dbc.Row([
                 active_label_style={'color': 'grey'}),
         dbc.Tab(label='Results', 
                 tab_id='tab_results',
+                active_label_style={'color': 'grey'}),
+        dbc.Tab(label='tab_test',
+                tab_id='tab_test',
                 active_label_style={'color': 'grey'})
         
 ]),
 dbc.Container(id='tab-content'),
-dcc.Store(id='store_basic_settings', data=[], storage_type='memory'),
-dcc.Store(id='store_environment', data=[], storage_type='memory'),
-dcc.Store(id='store_user_profile', data=[], storage_type='memory'),
-dcc.Store(id='store_bev', data=[], storage_type='memory'),
-dcc.Store(id='store_pv', data=[], storage_type='memory'),
-dcc.Store(id='store_wind', data=[], storage_type='memory'),
-dcc.Store(id='store_heatpump', data=[], storage_type='memory'),
-dcc.Store(id='store_storage', data=[], storage_type='memory'),
-dcc.Store(id='store_results', data=[], storage_type='memory'),
+dcc.Store(id='store_basic_settings', data={}, storage_type='session'),
+dcc.Store(id='store_environment', data={}, storage_type='session'),
+dcc.Store(id='store_user_profile', data={}, storage_type='session'),
+dcc.Store(id='store_bev', data={}, storage_type='session'),
+dcc.Store(id='store_pv', data={}, storage_type='session'),
+dcc.Store(id='store_wind', data={}, storage_type='session'),
+dcc.Store(id='store_heatpump', data={}, storage_type='session'),
+dcc.Store(id='store_storage', data={}, storage_type='session'),
+dcc.Store(id='store_results', data={}, storage_type='session'),
 ])
 
 
@@ -103,6 +106,8 @@ def render_content(active_tab):
         return tab_storage.layout
     elif active_tab == 'tab_results':
         return tab_results.layout
+    elif active_tab == 'tab_test':
+        return tab_test.layout
 
 if __name__ == '__main__':
     app.run_server(debug=True)
