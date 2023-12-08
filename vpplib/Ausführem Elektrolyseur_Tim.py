@@ -1,8 +1,6 @@
 import pandas as pd
 from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz 
 
-#TODO: wöfür die +40 bei H20
-
 #-------------------------------------------------------------------------------------------------
 #test mit input
 aa = input("Bitte geben Sie die Elektrolyseur-Größe und die Einheit an! (z.B. 10MW) ")
