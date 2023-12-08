@@ -16,7 +16,7 @@ from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz
 # d = ''.join([c for c in cc if c.isalpha()])
 
 # # ---------------------------------------------------------------------------
-# ccc = input("Wie viele Zeitschritte möchten Sie machen? ")
+# ccc = input("Wie viele Zeitschritte möchten Sie simulieren? ")
 # try:
 #     Zeitschritte = int(ccc)
 # except ValueError:
@@ -55,7 +55,7 @@ ts['P_ac'] = round(ts['P_ac']/100,2)
 ts['time']=0
 
 
-electrolyzer = ElectrolysisMoritz("1","mw","1","m","700","1","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, Druck in bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
+electrolyzer = ElectrolysisMoritz("1","mw","1","d","750","1","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, Druck in bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)

@@ -457,6 +457,19 @@ class ElectrolysisMoritz:
         :param T: electrolyze temperature
         :return: needed Power for compression in kW
         '''
+        #bei 1min zeitschritt
+        #500kw
+        #muss 0.28kwh/0.17kgh2
+        #das sind 16.8kw
+        
+        #bsp 750bar
+        #6mJ/kg
+        #3,6faktor mj kwh
+        #a=6/3.6=1.667  kwh/kg
+        #a*H2mfr #j/kg  kwh/kg
+
+        
+        
         #w_isotherm = R * T * Z * ln(p2 / p1)
         #p1=101325 #p atmo in pascal
         T2 = 273.15+30 #k
@@ -465,19 +478,16 @@ class ElectrolysisMoritz:
         k = 1.4
         kk = k / (k - 1)
         eta_Ver = 0.75
-        #w_isentrop = kk * self.R * T2 * Z*(((p2 / p1)**kk) - 1)*H2_mfr #alt
-        
+        #T2 = (self.T+273.15)*(int(self.p2) / p1) ** (k-1/k)
         # wenn kein Druck angegeben wird, wird nicht komprimiert
         if self.p2 ==0:
             w_isentrop=0
         else:
-            w_isentrop = kk * self.R * T2 *Z*((int(self.p2) / p1)**((k-1)/k) - 1)
+            
+            w_isentrop = kk*self.R * T2 * Z*(((int(self.p2) / p1)**(k-1/k)) - 1)     #j/kg
         
-        
-        
-        #T2 = T*(p2 / p1) ** kk
-        #P_compression = (((w_isentrop/self.M)/1000) * (1/60*self.dt)) / eta_Ver  #alt
-        P_compression=((w_isentrop*H2_mfr*(60/self.dt))/eta_Ver)/1000
+        P_compression = (((w_isentrop)/ eta_Ver)*H2_mfr/(60*self.dt))/10  #kann mir nicht erklären wieso durch 10 aber so passen ungefähr die leistungen zur dissitation
+        #print( P_compression)
 
         return P_compression    #kw
 
@@ -489,8 +499,8 @@ class ElectrolysisMoritz:
         V_th = self.E_th_0
         I = self.calculate_cell_current(P_dc)
         U_cell = self.calc_cell_voltage(I, self.temperature)
-
-        q_cell = (self.n_cells*(U_cell - V_th)*I)/1000
+        q_cell = (self.n_stacks*(self.n_cells*(U_cell - V_th)*I))/1000
+    
         return q_cell       #kW
 
     def heat_sys(self, q_cell,H2O_mfr):   
@@ -741,7 +751,7 @@ class ElectrolysisMoritz:
                     #gasdrying %
                     gasdrying_KW=self.gas_drying(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                     ts.loc[ts.index[i], 'gasdrying {%]'] = round((gasdrying_KW/self.P_nominal)*100,2)   
-                    
+                
                     #pump  #%
                     pump_KW=self.calc_pump(ts.loc[ts.index[i], 'H20 [kg/dt]'], self.P_nominal)
                     ts.loc[ts.index[i], 'pump [%]'] = round((pump_KW/self.P_nominal)*100,2)
@@ -761,7 +771,7 @@ class ElectrolysisMoritz:
                     #compression %
                     compression_KW=self.compression(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                     ts.loc[ts.index[i], 'compression [%]'] = round((compression_KW/self.P_nominal)*100,2)
-
+                    
                     #cooling_water kg/dt
                     cooling_water=self.calc_mfr_cool(heat_system_KW)
                     ts.loc[ts.index[i], 'cooling Water [kg/dt]']=round(cooling_water,2)
