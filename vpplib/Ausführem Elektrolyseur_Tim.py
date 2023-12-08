@@ -3,19 +3,6 @@ from a_hydrogen_elec_copy_Tim import ElectrolysisMoritz
 
 #TODO: wöfür die +40 bei H20
 
-#Import der Eingangsleistung
-#ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_PV_ninja.csv', sep=',', decimal='.')  #nrows=50
-ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=50)
-#ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
-#ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=20)
-
-
-
-#Leistungsanpassung
-ts['P_ac'] = round(ts['P_ac'],2)
-ts['time']=0
-
-
 #-------------------------------------------------------------------------------------------------
 #test mit input
 # aa = input("Bitte geben Sie die Elektrolyseur-Größe und die Einheit an! (z.B. 10MW) ")
@@ -29,6 +16,12 @@ ts['time']=0
 # d = ''.join([c for c in cc if c.isalpha()])
 
 # # ---------------------------------------------------------------------------
+# ccc = input("Wie viele Zeitschritte möchten Sie machen? ")
+# try:
+#     Zeitschritte = int(ccc)
+# except ValueError:
+#     print("Ungültige Eingabe. Bitte geben Sie eine ganze Zahl ein.")
+# #-------------------------------------------------------------------------------
 
 # e = input("Bitte geben Sie den Druck an, auf den der Wasserstoff komprimiert werden soll!")
 
@@ -46,7 +39,23 @@ ts['time']=0
 #--------------------------------------------------------------------------------------------------------------------------
 
 
-electrolyzer = ElectrolysisMoritz("200","mw","1","h","700","1","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
+
+
+#Import der Eingangsleistung
+#ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_PV_ninja.csv', sep=',', decimal='.')  #nrows=50
+#ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=Zeitschritte)
+ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=50)
+#ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
+#ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=20)
+
+
+
+#Leistungsanpassung
+ts['P_ac'] = round(ts['P_ac']/100,2)
+ts['time']=0
+
+
+electrolyzer = ElectrolysisMoritz("1","mw","1","m","700","1","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, Druck in bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)
@@ -58,4 +67,5 @@ ts.to_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_outp
 #EXCEL-Datei
 excel_file_path = r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_output.xlsx'
 ts.to_excel(excel_file_path, index=False)
+
 
