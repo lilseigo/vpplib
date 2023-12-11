@@ -619,7 +619,7 @@ class ElectrolysisMoritz:
         print("Diese Werte gelten für einen Elektrolyseur mit einer Leistung von {} {} und einem Zeitschritt von {} {}!".format(self.P_elektrolyseur_, self.unit_P_2, self.dt_1, self.dt_2))
 
     def prepare_timeseries(self, ts):
-        
+        ts['P_in without losses [KW]'] = 0.0
         ts['P_in [KW]'] = 0.0
         ts['hydrogen production [Kg/dt]'] = 0.0 
         ts['surplus electricity [kW]'] = 0.0
@@ -637,16 +637,29 @@ class ElectrolysisMoritz:
         ts['compression [%]'] = 0.0
         ts['efficiency [%]'] = 0.0
         ts['efficency _c [%]'] = 0.0
+        ts['Electrolyzer' ] = 0.0
         
-
+        
 
         for i in range(len(ts.index)): #Syntax überprüfen! 
             #-----------------------------------------------------------------------------------------
             #power dc
             if ts.loc[ts.index[i], 'P_ac'] > 0:
                 ts.loc[ts.index[i], 'P_in [KW]'] = round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
+                ts.loc[ts.index[i], 'P_in without losses [KW]']=round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
             else:   
                 ts.loc[ts.index[i], 'P_in [KW]'] = 0
+        
+        
+        for i in range(len(ts.index)): #Syntax überprüfen! 
+            #-----------------------------------------------------------------------------------------
+            #power dc
+            # if ts.loc[ts.index[i], 'P_ac'] > 0:
+            #     ts.loc[ts.index[i], 'P_in [KW]'] = round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
+            #     ts.loc[ts.index[i], 'P_in without losses [KW]']=round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
+            # else:   
+            #     ts.loc[ts.index[i], 'P_in [KW]'] = 0
+                
             #status codes
             ts = self.status_codes(ts) 
             
@@ -779,24 +792,33 @@ class ElectrolysisMoritz:
                     #efficency with compression
                     efficency_with_compression=(((ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']*self.lhv*(60/self.dt))/self.P_nominal)*100)-ts.loc[ts.index[i], 'gasdrying {%]']-ts.loc[ts.index[i], 'pump [%]']-ts.loc[ts.index[i], 'compression [%]']-ts.loc[ts.index[i], 'electronics [%]']
                     ts.loc[ts.index[i], 'efficency _c [%]'] = round(efficency_with_compression,2)
-                    #---------------------------------------------------------------------------------------------------------------------------------------------
+                #---------------------------------------------------------------------------------------------------------------------------------------------
+                #required_power
                 
+                if ts.loc[ts.index[i], 'P_in [KW]'] <= self.P_nominal:
+                    ts.loc[ts.index[i], 'Electrolyzer' ] = round(ts.loc[ts.index[i], 'P_in without losses [KW]'], 2)
+              
+                else:
+                    ts.loc[ts.index[i], 'Electrolyzer' ]=round(self.P_nominal+(ts.loc[ts.index[i], 'P_in without losses [KW]']-ts.loc[ts.index[i], 'P_in [KW]']),2)
+                
+                #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 #pump, gasdrying,compression wird von dem nächsten zeitschritt abgezogen
                 if i< (len(ts.index)-1):
                     
-                    ts.loc[ts.index[i + 1], 'P_ac'] = ts.loc[ts.index[i + 1], 'P_ac'] - (pump_KW + compression_KW / 10 + gasdrying_KW)   #/10 da compression noch nicht stimmt
+                    ts.loc[ts.index[i + 1], 'P_in [KW]'] = round(ts.loc[ts.index[i + 1], 'P_in [KW]'] - (pump_KW + compression_KW  + gasdrying_KW),2) 
                     
-                    if ts.loc[ts.index[i + 1], 'P_ac']<=0:
-                        ts.loc[ts.index[i + 1], 'P_ac'] =0
+                    if ts.loc[ts.index[i + 1], 'P_in [KW]']<=0:
+                        ts.loc[ts.index[i + 1], 'P_in [KW]'] =0
              #----------------------------------------------------------------------------------------------------------------------------------------------------------
             #hochfahren
             elif ts.loc[ts.index[i], 'status'] == 'booting':
                 ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]'] - 0.0085*self.P_nominal
             else:
                 ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]']
-
+        #-----------------------------------------------------------------------------------------------------------------------
         #Wasserstoffproduktion/Volumenberechnung kompremierter Wasserstoff
         self.h2_production_calc(ts)
+        #-------------------------------------------------------------------------------------------------------------------------
         #setzt efficency_c auf 0 wenn p2 0 ist
         if self.p2 == 0:
         # Setze die Spalten auf 0.0
@@ -806,12 +828,84 @@ class ElectrolysisMoritz:
         
         return ts
     
+    def value_for_timestamp(self, timestamp):
 
+        """
+        Info
+        ----
+        This function takes a timestamp as the parameter and returns the
+        corresponding power demand for that timestamp.
+        A positiv result represents a load.
+        A negative result represents a generation.
 
-    #value of timestep   - elektrische Leistung
-    
-    
-    #observation of timestep
+        Parameters
+        ----------
+        timestamp: datetime64[ns]
+            value of the time of ramp down
+
+        Returns
+        -------
+        power value for timestamp
+
+        """
+
+        if type(timestamp) == int:
+
+            return self.ts["Electrolyzer "].iloc[timestamp] 
+
+        elif type(timestamp) == str:
+
+            return self.timeseries["Electrolyzer"].loc[timestamp] 
+
+        else:
+            raise ValueError(
+                "timestamp needs to be of type int or string. "
+                + "Stringformat: YYYY-MM-DD hh:mm:ss"
+            )
+
+    def observations_for_timestamp(self, timestamp):
+
+        """
+        Info
+        ----
+        This function takes a timestamp as the parameter and returns a
+        dictionary with key (String) value (Any) pairs.
+
+        Parameters
+        ----------
+        timestamp: datetime64[ns]
+            value of the time of ramp down
+
+        Returns
+        -------
+        dict with values from self.timeseries.car_charger,
+        self.timeseries.car_capacity and self.timeseries.at_home
+
+        """
+        if type(timestamp) == int:
+
+            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.timeseries.iloc[
+                timestamp
+            ]
+
+        elif type(timestamp) == str:
+
+            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.timeseries.iloc[
+                timestamp
+            ]
+        else:
+            raise ValueError(
+                "timestamp needs to be of type int or string. "
+                + "Stringformat: YYYY-MM-DD hh:mm:ss"
+            )
+
+        observations = {
+            "Electrolyzer ": self.ts["Electrolyzer "].iloc[timestamp],
+            'hydrogen production [Kg/dt]': self.ts['hydrogen production [Kg/dt]'].iloc[timestamp],
+            'efficiency [%]': self.ts['efficiency [%]'].iloc[timestamp],
+        }
+
+        return observations
 
 
 
