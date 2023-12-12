@@ -220,6 +220,7 @@ class ElectrolysisMoritz:
             'production': 4,
             'booting': 3
         })
+
         return df
     
     def calc_cell_voltage(self, I, T):         
@@ -457,36 +458,29 @@ class ElectrolysisMoritz:
         '''
         #bei 1min zeitschritt
         #500kw
-        #muss 0.28kwh/0.17kgh2
-        #das sind 16.8kw
-        
-        #bsp 750bar
-        #6mJ/kg
-        #3,6faktor mj kwh
-        #a=6/3.6=1.667  kwh/kg
-        #a*H2mfr #j/kg  kwh/kg
+        #100bar ca. 5kw
+        #200bar ca. 8.5kw
+        #750bar ca. 17kw
 
-        
-        
         #w_isotherm = R * T * Z * ln(p2 / p1)
-        #p1=101325 #p atmo in pascal
+        
         T2 = 273.15+30 #k
         p1 = 30 #bar    
         Z = 0.95    
         k = 1.4
         kk = k / (k - 1)
-        eta_Ver = 0.75
-        #T2 = (self.T+273.15)*(int(self.p2) / p1) ** (k-1/k)
+        kkk=(k - 1) / k
+        #eta_Ver = 0.75 #woher kommt der 
+        eta_Ver = 1
+        
         # wenn kein Druck angegeben wird, wird nicht komprimiert
         if self.p2 ==0:
             w_isentrop=0
         else:
-            
-            w_isentrop = kk*self.R * T2 * Z*(((int(self.p2) / p1)**(k-1/k)) - 1)     #j/kg
+            w_isentrop = kk*(self.R/self.M) * T2 * Z*(((int(self.p2) / p1)**(kkk)) - 1)     #j/g
         
-        P_compression = (((w_isentrop)/ eta_Ver)*H2_mfr/(60*self.dt))/10  #kann mir nicht erklären wieso durch 10 aber so passen ungefähr die leistungen zur dissitation
-        #print( P_compression)
-
+        P_compression = (((w_isentrop)/ eta_Ver)*H2_mfr/(60*self.dt))  #kw   
+        #print(P_compression)
         return P_compression    #kw
 
     def heat_cell(self, P_dc):          
@@ -649,7 +643,12 @@ class ElectrolysisMoritz:
                 ts.loc[ts.index[i], 'P_in without losses [KW]']=round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
             else:   
                 ts.loc[ts.index[i], 'P_in [KW]'] = 0
-        
+
+        # damit der Elektrolyseur immer aus dem coldstandby hochfährt
+        ts.loc[ts.index[0], 'P_ac']=0
+        ts.loc[ts.index[0], 'P_in [KW]']=0
+        ts.loc[ts.index[0], 'P_in without losses [KW]']=0
+            
         
         for i in range(len(ts.index)): #Syntax überprüfen! 
             #-----------------------------------------------------------------------------------------
@@ -819,16 +818,18 @@ class ElectrolysisMoritz:
         #Wasserstoffproduktion/Volumenberechnung kompremierter Wasserstoff
         self.h2_production_calc(ts)
         #-------------------------------------------------------------------------------------------------------------------------
-        #setzt efficency_c auf 0 wenn p2 0 ist
+        #setzt efficency_c auf 0 wenn p2=0 ist
         if self.p2 == 0:
         # Setze die Spalten auf 0.0
             ts['efficency _c [%]'] = 0.0
-
-        
         
         return ts
+        
+
+        
+        #return ts
     
-    def value_for_timestamp(self, timestamp):
+    def value_for_timestamp(self, timestamp): # in arbeit
 
         """
         Info
@@ -851,7 +852,7 @@ class ElectrolysisMoritz:
 
         if type(timestamp) == int:
 
-            return self.ts["Electrolyzer "].iloc[timestamp] 
+            return self.ts["Electrolyzer"].iloc[timestamp] 
 
         elif type(timestamp) == str:
 
@@ -863,7 +864,7 @@ class ElectrolysisMoritz:
                 + "Stringformat: YYYY-MM-DD hh:mm:ss"
             )
 
-    def observations_for_timestamp(self, timestamp):
+    def observations_for_timestamp(self, timestamp): # in arbeit
 
         """
         Info
