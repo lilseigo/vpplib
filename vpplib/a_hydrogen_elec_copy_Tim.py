@@ -796,7 +796,7 @@ class ElectrolysisMoritz:
                 
                 if ts.loc[ts.index[i], 'P_in [KW]'] <= self.P_nominal:
                     ts.loc[ts.index[i], 'Electrolyzer' ] = round(ts.loc[ts.index[i], 'P_in without losses [KW]'], 2)
-              
+                
                 else:
                     ts.loc[ts.index[i], 'Electrolyzer' ]=round(self.P_nominal+(ts.loc[ts.index[i], 'P_in without losses [KW]']-ts.loc[ts.index[i], 'P_in [KW]']),2)
                 
@@ -812,8 +812,16 @@ class ElectrolysisMoritz:
             #hochfahren
             elif ts.loc[ts.index[i], 'status'] == 'booting':
                 ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]'] - 0.0085*self.P_nominal
+                #ts.loc[ts.index[i], 'Electrolyzer' ]=round((ts.loc[ts.index[i], 'P_in without losses [KW]']-ts.loc[ts.index[i], 'P_in [KW]']),2)
+                
+                
+                
+
             else:
                 ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]']
+                
+
+            
         #-----------------------------------------------------------------------------------------------------------------------
         #Wasserstoffproduktion/Volumenberechnung kompremierter Wasserstoff
         self.h2_production_calc(ts)
@@ -829,7 +837,7 @@ class ElectrolysisMoritz:
         
         #return ts
     
-    def value_for_timestamp(self, timestamp): # in arbeit
+    def value_for_timestamp(self,ts, timestamp): # in arbeit
 
         """
         Info
@@ -863,8 +871,18 @@ class ElectrolysisMoritz:
                 "timestamp needs to be of type int or string. "
                 + "Stringformat: YYYY-MM-DD hh:mm:ss"
             )
+        
+        # if type(timestamp) == int:
+        #     return ts.iloc[timestamp]["Electrolyzer"]
+        # elif type(timestamp) == str:
+        #     return ts.loc[timestamp]["Electrolyzer"]
+        # else:
+        #     raise ValueError(
+        #         "Der Zeitstempel muss vom Typ int oder str sein. "
+        #         + "Stringformat: JJJJ-MM-TT hh:mm:ss"
+        # )
 
-    def observations_for_timestamp(self, timestamp): # in arbeit
+    def observations_for_timestamp(self,ts, timestamp): # in arbeit
 
         """
         Info
@@ -885,13 +903,13 @@ class ElectrolysisMoritz:
         """
         if type(timestamp) == int:
 
-            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.timeseries.iloc[
+            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.ts.iloc[
                 timestamp
             ]
 
         elif type(timestamp) == str:
 
-            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.timeseries.iloc[
+            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.tts.iloc[
                 timestamp
             ]
         else:
