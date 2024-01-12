@@ -893,43 +893,16 @@ class ElectrolysisMoritz:
         self.timeseries.car_capacity and self.timeseries.at_home
 
         """
-        # if type(timestamp) == int:
 
-        #     self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'] , self.timeseries['efficiency [%]'] = self.timeseries.iloc[
-        #         timestamp
-        #     ]
-
-        # elif type(timestamp) == str:
-
-        #     self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'] , self.timeseries['efficiency [%]'] = self.timeseries.iloc[
-        #         timestamp
-        #     ]
-        # else:
-        #     raise ValueError(
-        #         "timestamp needs to be of type int or string. "
-        #         + "Stringformat: YYYY-MM-DD hh:mm:ss"
-        #     )
-
-        # observations = {
-        #     "Electrolyzer ": self.timeseries["Electrolyzer "].iloc[timestamp],
-        #     'hydrogen production [Kg/dt]': self.timeseries['hydrogen production [Kg/dt]'].iloc[timestamp],
-        #     'efficiency [%]': self.timeseries['efficiency [%]'].iloc[timestamp],
-        # }
-
-        # return observations
 
         if type(timestamp) == int:
 
-            
-            result = self.timeseries.iloc[timestamp]
-            #self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'], self.timeseries['efficiency [%]'] = result
+            result = self.timeseries.iloc[timestamp] 
 
         elif type(timestamp) == str:
 
-            
             result = self.timeseries.loc[timestamp]
-            #self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'], self.timeseries['efficiency [%]'] = result
-
+        
         else:
             raise ValueError(
                 "timestamp needs to be of type int or string. "

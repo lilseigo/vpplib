@@ -9,6 +9,8 @@ ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib
 
 #Leistungsanpassung
 ts['P_ac'] = round(ts['P_ac']/100,2)
+#----------------------------------------------------------------
+#test
 
 # start = "2015-06-01 00:00:00"
 # end = "2015-06-01 23:45:00"
@@ -19,8 +21,8 @@ ts['P_ac'] = round(ts['P_ac']/100,2)
 # environment = Environment(start=start, end=end, timebase=timebase)
 # print(environment)
 # ts=environment
-
-timestamp_int=20
+#----------------------------------------------------------------
+timestamp_int=10
 timestamp_str="2015-01-01 02:30:00+00:00"
 
 Power_electrolyzer="500"
@@ -43,7 +45,7 @@ electrolyzer = ElectrolysisMoritz(
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)
 print(ts)
-ts=ts
+
 #CSV-Datei
 ts.to_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_output.csv', index=False)
 
@@ -61,7 +63,7 @@ def test_observations_for_timestamp(electrolyzer, timestamp):
     print(observation, "\n")
 
 
-#electrolyzer.prepare_timeseries(ts)
+
 test_value_for_timestamp(electrolyzer, timestamp_int)
 test_value_for_timestamp(electrolyzer, timestamp_str)
 
