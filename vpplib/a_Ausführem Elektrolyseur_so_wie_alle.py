@@ -5,7 +5,7 @@ from environment import Environment
 
 
 #Import der Eingangsleistung
-ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=50)
+ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=30)
 
 #Leistungsanpassung
 ts['P_ac'] = round(ts['P_ac']/100,2)
@@ -48,12 +48,12 @@ ts=ts
 ts.to_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_output.csv', index=False)
 
 
-def test_value_for_timestamp(ts, timestamp):
+def test_value_for_timestamp(electrolyzer, timestamp):
     
     timestepvalue = electrolyzer.value_for_timestamp(timestamp)
     print("\nvalue_for_timestamp:\n", timestepvalue)
 
-def test_observations_for_timestamp(ts, timestamp):
+def test_observations_for_timestamp(electrolyzer, timestamp):
 
     print("observations_for_timestamp:")
     
@@ -62,11 +62,11 @@ def test_observations_for_timestamp(ts, timestamp):
 
 
 #electrolyzer.prepare_timeseries(ts)
-test_value_for_timestamp(ts, timestamp_int)
-test_value_for_timestamp(ts, timestamp_str)
+test_value_for_timestamp(electrolyzer, timestamp_int)
+test_value_for_timestamp(electrolyzer, timestamp_str)
 
-test_observations_for_timestamp(ts, timestamp_int)
-test_observations_for_timestamp(ts, timestamp_str)
+test_observations_for_timestamp(electrolyzer, timestamp_int)
+test_observations_for_timestamp(electrolyzer,timestamp_str)
 
 
 

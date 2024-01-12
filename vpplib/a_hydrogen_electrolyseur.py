@@ -830,14 +830,16 @@ class ElectrolysisMoritz:
         if self.p2 == 0:
         # Setze die Spalten auf 0.0
             ts['efficency _c [%]'] = 0.0
-        
+
+        #-----------------------------------------------------------------------------------------
+        ts.set_index("time",inplace=True)
+        ts.index=pd.to_datetime(ts.index)
+        self.timeseries=ts
+        #----------------------------------------------------------------------------
         return ts
         
-
-        
-        #return ts
     
-    def value_for_timestamp(self,ts, timestamp): # in arbeit
+    def value_for_timestamp(self, timestamp): # in arbeit
 
         """
         Info
@@ -860,10 +862,10 @@ class ElectrolysisMoritz:
 
         if type(timestamp) == int:
 
-            return self.ts["Electrolyzer"].iloc[timestamp] 
+            return self.timeseries["Electrolyzer"].iloc[timestamp] 
 
         elif type(timestamp) == str:
-
+            
             return self.timeseries["Electrolyzer"].loc[timestamp] 
 
         else:
@@ -871,18 +873,8 @@ class ElectrolysisMoritz:
                 "timestamp needs to be of type int or string. "
                 + "Stringformat: YYYY-MM-DD hh:mm:ss"
             )
-        
-        # if type(timestamp) == int:
-        #     return ts.iloc[timestamp]["Electrolyzer"]
-        # elif type(timestamp) == str:
-        #     return ts.loc[timestamp]["Electrolyzer"]
-        # else:
-        #     raise ValueError(
-        #         "Der Zeitstempel muss vom Typ int oder str sein. "
-        #         + "Stringformat: JJJJ-MM-TT hh:mm:ss"
-        # )
 
-    def observations_for_timestamp(self,ts, timestamp): # in arbeit
+    def observations_for_timestamp(self, timestamp): # in arbeit
 
         """
         Info
@@ -901,17 +893,43 @@ class ElectrolysisMoritz:
         self.timeseries.car_capacity and self.timeseries.at_home
 
         """
+        # if type(timestamp) == int:
+
+        #     self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'] , self.timeseries['efficiency [%]'] = self.timeseries.iloc[
+        #         timestamp
+        #     ]
+
+        # elif type(timestamp) == str:
+
+        #     self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'] , self.timeseries['efficiency [%]'] = self.timeseries.iloc[
+        #         timestamp
+        #     ]
+        # else:
+        #     raise ValueError(
+        #         "timestamp needs to be of type int or string. "
+        #         + "Stringformat: YYYY-MM-DD hh:mm:ss"
+        #     )
+
+        # observations = {
+        #     "Electrolyzer ": self.timeseries["Electrolyzer "].iloc[timestamp],
+        #     'hydrogen production [Kg/dt]': self.timeseries['hydrogen production [Kg/dt]'].iloc[timestamp],
+        #     'efficiency [%]': self.timeseries['efficiency [%]'].iloc[timestamp],
+        # }
+
+        # return observations
+
         if type(timestamp) == int:
 
-            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.ts.iloc[
-                timestamp
-            ]
+            
+            result = self.timeseries.iloc[timestamp]
+            #self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'], self.timeseries['efficiency [%]'] = result
 
         elif type(timestamp) == str:
 
-            self.ts["Electrolyzer "], self.ts['hydrogen production [Kg/dt]'] , self.ts['efficiency [%]'] = self.tts.iloc[
-                timestamp
-            ]
+            
+            result = self.timeseries.loc[timestamp]
+            #self.timeseries["Electrolyzer "], self.timeseries['hydrogen production [Kg/dt]'], self.timeseries['efficiency [%]'] = result
+
         else:
             raise ValueError(
                 "timestamp needs to be of type int or string. "
@@ -919,14 +937,12 @@ class ElectrolysisMoritz:
             )
 
         observations = {
-            "Electrolyzer ": self.ts["Electrolyzer "].iloc[timestamp],
-            'hydrogen production [Kg/dt]': self.ts['hydrogen production [Kg/dt]'].iloc[timestamp],
-            'efficiency [%]': self.ts['efficiency [%]'].iloc[timestamp],
+            "Electrolyzer ": result["Electrolyzer"],
+            'hydrogen production [Kg/dt]': result['hydrogen production [Kg/dt]'],
+            'efficiency [%]': result['efficiency [%]'],
         }
 
         return observations
-
-
 
 
 
