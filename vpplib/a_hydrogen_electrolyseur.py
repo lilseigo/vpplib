@@ -666,7 +666,7 @@ class ElectrolysisMoritz:
             if ts.loc[ts.index[i], 'status'] == 'production':
 
                 
-                #wenn die Eingangsleistung kleiner als p_eletrolyseur ist
+                #wenn die Eingangsleistung kleiner als p_elektrolyseur ist
                 if ts.loc[ts.index[i], 'P_in [KW]'] <= self.P_nominal:
                     #----------------------------------------------------------------------------------------------------------------
                     #output
@@ -838,7 +838,6 @@ class ElectrolysisMoritz:
         #----------------------------------------------------------------------------
         return ts
         
-    
     def value_for_timestamp(self, timestamp): # in arbeit
 
         """
