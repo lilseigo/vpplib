@@ -62,7 +62,7 @@ class ElectrolysisMoritz:
         self.p_anode = self.p_atmo  # (Pa) pressure at anode, assumed atmo
 
     def kontrolle(self):
-        #Here, the various inputs are checked
+        #the various inputs are checked
         #If incorrect inputs are provided, error messages will be issued
         #----------------------------------------------------------------
         #Check whether the performance of the electrolyzer and the time step are a number or a decimal. If not, an error message will be displayed
@@ -170,7 +170,7 @@ class ElectrolysisMoritz:
         #----------------------------------------------------------------------------------------------------------------------------------
         #If the power of the electrolyzer is not divisible by 500, an error message will be issued. Reason: Stack size is fixed at 500 kW.
         if self.P_elektrolyseur % 500 != 0:
-            raise ValueError("The power of the electrolyzer must be in the 500 series.") 
+            raise ValueError("The power of the electrolyzer must be in the 500 series, as one stack of the electrolyzer is 500 kW") 
         #------------------------------------------------------------------
 
     def status_codes(self,df):      
