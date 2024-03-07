@@ -26,17 +26,17 @@ class ElectrolysisMoritz:
         self.T = 50 # Grad Celsius
         self.p2=p2 #bar compression
         
-        self.P_elektrolyseur_=P_elektrolyseur_
-        self.P_elektrolyseur=P_elektrolyseur_
-        self.unit_P=unit_P
-        self.dt_1=dt_1
-        self.unit_dt=unit_dt
-        self.p2=p2
-        self.production_H2_=production_H2_
-        self.unit_production_H2=unit_production_H2
+        self.P_elektrolyseur_=P_elektrolyseur_ #kW
+        self.P_elektrolyseur=P_elektrolyseur_  #kW
+        self.unit_P=unit_P #kW
+        self.dt_1=dt_1 #time(s/h/d)
+        self.unit_dt=unit_dt #(s/h/d)
+        self.p2=p2 #bar
+        self.production_H2_=production_H2_ #weight
+        self.unit_production_H2=unit_production_H2 #weight (g,kg,t)
         
-        #kontrolliert die Eingabe und gibt falls nötig eine Fehlermeldung
-        self.kontrolle()
+        
+        self.kontrolle() #Checks the input and provides an error message if necessary
         
         self.P_nominal = self.P_elektrolyseur    #kW
         self.P_min = self.P_nominal * 0.1   #kW
@@ -53,43 +53,43 @@ class ElectrolysisMoritz:
         self.p_anode = self.p_atmo  # (Pa) pressure at anode, assumed atmo
 
     def kontrolle(self):
-        # Hier werden die verschiedenen Eingaben überprüft 
-        #falls falsche Eingaben gemacht wurden, werden Fehlermeldungen herausgegeben
+        #Here, the various inputs are checked
+        #If incorrect inputs are provided, error messages will be issued
         #----------------------------------------------------------------
-        #Überprüfung ob die Leistung des Elektrolyseurs und der Zeitschritt eine Zahl oder eine Kommazahl ist. falls nicht kommt eine Fehlermeldung
+        #Check whether the performance of the electrolyzer and the time step are a number or a decimal. If not, an error message will be displayed
         try:
             self.P_elektrolyseur = float(self.P_elektrolyseur)
         except ValueError:
-            raise ValueError("Bitte überprüfen Sie die Eingabe der Elektrolyseur-Größe. Es sollten Zahlen oder Kommazahlen sein.")
+            raise ValueError("Please check the input for the electrolyzer size. It should be numbers or decimals.")
         
 
         try:
             self.dt_1 = float(self.dt_1)
         except ValueError:
-            raise ValueError("Bitte überprüfen Sie die Eingabe des Zeitschrittes. Es sollten Zahlen oder Kommazahlen sein.")
+            raise ValueError("Please check the input for the time step. It should be numbers or decimals.")
 
         
         #---------------------------------------------------------------------
-        # Hier wird die Einheit des Elektolyseurs überprüft
-        #units_P W, KW, MW, GW
+        # Here, the unit of the electrolyzer is being verified
+        #units_P: W, KW, MW, GW  Units of the ELektrolyzer
 
-        if self.unit_P.lower() =="w":  #Watt
+        if self.unit_P.lower() =="w":  #W
             self.P_elektrolyseur =self.P_elektrolyseur/1000
             self.unit_P_2="W"
-        elif self.unit_P.lower() =="kw": #Kilowatt
+        elif self.unit_P.lower() =="kw": #kW
            self.P_elektrolyseur =self.P_elektrolyseur
            self.unit_P_2="KW"
-        elif self.unit_P.lower() =="mw": #megawatt
+        elif self.unit_P.lower() =="mw": #mW
             self.P_elektrolyseur =self.P_elektrolyseur*1000
             self.unit_P_2="MW"
-        elif self.unit_P.lower() =="gw": #gigawatt
+        elif self.unit_P.lower() =="gw": #gW
             self.P_elektrolyseur =self.P_elektrolyseur*1000*1000
             self.unit_P_2="GW"
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit des Elektrolyseurs! Derzeit sind die Möglickeiten W,KW,MW,GW") 
+           raise ValueError("Please check the unit of the electrolyzer! Currently, the options are W, kW, MW, GW.") 
         #----------------------------------------------------------------------
-        # Hier wird die Einheit des Zeitschrittes überprüft
-        #Units_dt S, M, H,D     
+        # Here, the unit of the time step is being verified.
+        #Units_dt: S, M, H,D     Units of the time step.
         
         if self.unit_dt.lower() =="s": # second
             self.dt=self.dt_1/60
@@ -108,28 +108,28 @@ class ElectrolysisMoritz:
             self.dt_2="Tag/e"
             
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit der Zeit! Derzeit sind die Möglichkeiten S,M,H,D") 
+           raise ValueError("Please verify the unit of time! Currently, the options are S (seconds), M (minutes), H (hours), D (days)") 
         #------------------------------------------------------------------------------
-        #Druck überprüfung
+        #Pressure verification.
 
         if self.p2 =="":
             self.p2=0
-        elif not self.p2.isdigit(): # Wenn p2 kein numerischer Wert ist zb. Buchstabe 
+        elif not self.p2.isdigit(): # If p2 is not a numerical value, for example, a letter.
             self.p2 = 0
-        elif int(self.p2) <30:
-            raise ValueError("Der Wert auf den zu komprimierenden Druck muss größer 30 Bar sein!")
-        elif int(self.p2) >=30:
-            self.p2=self.p2
+        elif int(self.p2) <30: #bar
+            raise ValueError("The value of the pressure to be compressed must be greater than 30 bar!")
+        elif int(self.p2) >=30: #bar
+            self.p2=self.p2 #bar
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit auf den zu kompremierenden Druck")
+           raise ValueError("Please check the unit of the pressure to be compressed.")
 
         #---------------------------------------------------------------------------------
-        # Hier wird die Einheit der benötigten Wasserstoffmenge überprüft
-        #units_H2 G, KG, T,
+        #Verification of the time calculation for hydrogen generation
+        #units_H2 G, KG, T, 
         
-        self.production_H2=self.production_H2_
+        self.production_H2=self.production_H2_ 
 
-        #Wenn keine Eingabe bei benötigter wasserstoffmenge dann wird Diese auf 0 gesetzt und nicht angezeigt weiterer Teil der funktion in der funktion h2_production_calc
+        #If no input is provided for the required hydrogen amount, it will be set to 0 and not displayed. This is part of the function within the 'h2_production_calc' function.
         
         if self.production_H2_ == "":
             self.production_H2 = 0
@@ -157,11 +157,11 @@ class ElectrolysisMoritz:
             self.production_H2_=0
             self.unit_H2=""
         else:
-           raise ValueError("Bitte überprüfen Sie die Einheit des zu erzeugendem Wasserstoffs! Derzeit sind die Möglickeiten G,Kg,T")
+           raise ValueError("Please check the unit of the generated hydrogen! Currently, the options are g (grams), kg (kilograms), T (tonnes).")
         #----------------------------------------------------------------------------------------------------------------------------------
-        #wenn die Leistung des Elektrolyseurs nicht durch 500 teilbar ist dann gibt es eine fehlermeldung Grund: stackgröße ist auf 500kw festgelegt
+        #If the power of the electrolyzer is not divisible by 500, an error message will be issued. Reason: Stack size is fixed at 500 kW.
         if self.P_elektrolyseur % 500 != 0:
-            raise ValueError("Die Leistung des Elektrolyseurs muss in der 500er Reihe liegen!") 
+            raise ValueError("The power of the electrolyzer must be in the 500 series.") 
         #------------------------------------------------------------------
 
     def status_codes(self,df):      
@@ -319,7 +319,9 @@ class ElectrolysisMoritz:
 
         plt.show()
 
-    def stack_nominal(self):               
+    def stack_nominal(self):   
+
+        #Stack size is fixed at 500 kW.            
         '''
         stack nominal in kW
         :return:
@@ -473,7 +475,7 @@ class ElectrolysisMoritz:
         #eta_Ver = 0.75 #woher kommt der 
         eta_Ver = 1
         
-        # wenn kein Druck angegeben wird, wird nicht komprimiert
+        # If no pressure is specified, compression will not take place.
         if self.p2 ==0:
             w_isentrop=0
         else:
@@ -558,84 +560,86 @@ class ElectrolysisMoritz:
 
     def h2_production_calc(self,ts):
 
-        #Hier wird berechnet wie lange die Produktion der vorgegebenen Masse von Wasserstoff dauert. 
-        #Desweiteren wird berechent wie viel Volumen der Wasserstoff bei gebenem Druck einnimmt und um wie viel sich das volumen verkleinert
+        #Here, the calculation is made for how long the production of the specified mass of hydrogen will take. 
+        #Furthermore, the calculation is performed to determine the volume the hydrogen occupies at the given pressure and the amount by which the volume decreases.t
         
         if self.production_H2>0:
             for i in ts.index:
                 total_production = 0
                 count_additions = 0
                 i=0
-            # Solange die Gesamtproduktion kleiner als ... ist, addiere den aktuellen Wert
+            # As long as the total production is smaller than the specified value, add the current value.
             while total_production <= self.production_H2:
             #total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
                 total_production += ts.loc[ts.index[i], 'hydrogen production [Kg/dt]']
                 count_additions += 1
                 i+=1
             
-            #Volumenberechnung
+            #Volume calculation.
             if int(self.p2)>0:
             
-                P = int(self.p2)  # Druck in Bar
-                T = 15+273.15  # Temperatur in Kelvin
+                P = int(self.p2)  #  Bar
+                T = 15+273.15  #  Kelvin
                 mass_hydrogen_kg = self.production_H2  #kg
-                molar_mass_hydrogen = 2.016  # Molare Masse von Wasserstoff in g/mol
-                initial_n = mass_hydrogen_kg * 1000 / molar_mass_hydrogen  # Stoffmenge in Mol
+                molar_mass_hydrogen = 2.016  # The molar mass of hydrogen  g/mol
+                initial_n = mass_hydrogen_kg * 1000 / molar_mass_hydrogen  # SAmount of hydrogen in mol
 
                 a = 0.244  # Van-der-Waals-Koeffizient a für Wasserstoff in (L^2*bar)/(mol^2)
                 b = 0.0266  # Van-der-Waals-Koeffizient b für Wasserstoff in L/mol
                 R = 0.08314  # Universelle Gaskonstante in (L*bar)/(mol*K)
 
-                # Umstellung der Van-der-Waals-Gleichung nach Volumen
+                # Rearrangement of the Van der Waals equation for volume.
                 def van_der_waals_equation(V):
                     return (P + (a * initial_n**2) / V**2) * (V - b * initial_n) - initial_n * R * T
 
-                #ideales Gasgesetz
-                V_ideal = (initial_n*R*T)/P  
+                #Ideal Gas Law.
+                V_ideal = (initial_n*R*T)/P   #m^2
 
-                # Numerische Berechnung des Volumens
-                V_solution = round(fsolve(van_der_waals_equation, V_ideal)[0]/1000,2)
+                # Numerical calculation of the volume.
+                V_solution = round(fsolve(van_der_waals_equation, V_ideal)[0]/1000,2) #m^2
 
 
                 def van_der_waals_equation_2(V_2):
                     return (30 + (a * initial_n**2) / V_2**2) * (V_2 - b * initial_n) - initial_n * R * T
 
-                #ideales Gasgesetz
-                V_ideal_2 = (initial_n*R*T)/30  
+                #Ideal Gas Law.
+                V_ideal_2 = (initial_n*R*T)/30  #m^2
 
-                # Numerische Berechnung des Volumens
-                V_solution_2 = round(fsolve(van_der_waals_equation_2, V_ideal_2)[0]/1000,2)
+                # Numerical calculation of the volume.
+                V_solution_2 = round(fsolve(van_der_waals_equation_2, V_ideal_2)[0]/1000,2) #m^2
             
-                print("Die Produktion von {} {} Wasserstoff dauert {} {} und hat nach der Kompression auf {} Bar ein Volumen von {} m^2! Dadurch reduziert sich ca. das Volumen um das {}-Fache".format(self.production_H2_,self.unit_H2,(round(count_additions*self.dt_1,2)),self.dt_2,self.p2,V_solution,(round(V_ideal_2/V_ideal))))
+                print("The production of {} {} hydrogen takes {} {} and, after compression to {} bar, occupies a volume of {} m^3! This results in a reduction of volume by approximately {} times.".format(self.production_H2_,self.unit_H2,(round(count_additions*self.dt_1,2)),self.dt_2,self.p2,V_solution,(round(V_ideal_2/V_ideal))))
 
 
 
-        print("Diese Werte gelten für einen Elektrolyseur mit einer Leistung von {} {} und einem Zeitschritt von {} {}!".format(self.P_elektrolyseur_, self.unit_P_2, self.dt_1, self.dt_2))
+        print("These values apply to an electrolyzer with a power of {} {} and a time step of {} {}!".format(self.P_elektrolyseur_, self.unit_P_2, self.dt_1, self.dt_2))
 
     def prepare_timeseries(self, ts):
-        ts['P_in without losses [KW]'] = 0.0
-        ts['P_in [KW]'] = 0.0
-        ts['hydrogen production [Kg/dt]'] = 0.0 
-        ts['surplus electricity [kW]'] = 0.0
-        ts['status'] = 0.0
-        ts['status codes'] = 0.0
-        ts['H20 [kg/dt]'] = 0.0
-        ts['Oxygen [kg/dt]'] = 0.0
-        ts['cooling Water [kg/dt]'] = 0.0
-        ts['Heat Cell [%]'] = 0.0
-        ts['heat system [%]'] = 0.0
-        ts['electrolyzer {%]'] = 0.0
-        ts['gasdrying {%]'] = 0.0
-        ts['electronics [%]'] = 0.0
-        ts['pump [%]'] = 0.0
-        ts['compression [%]'] = 0.0
-        ts['efficiency [%]'] = 0.0
-        ts['efficency _c [%]'] = 0.0
-        ts['Electrolyzer' ] = 0.0
+        
+        
+        ts['P_in without losses [KW]'] = 0.0        # Input power from the electrical grid.
+        ts['P_in [KW]'] = 0.0                      #Input power from the electrical grid including losses from the last time step
+        ts['hydrogen production [Kg/dt]'] = 0.0  # hydrogen production [Kg/dt]
+        ts['surplus electricity [kW]'] = 0.0  #Excess energy. kW
+        ts['status'] = 0.0                 #Information about the status of the electrolyzer.
+        ts['status codes'] = 0.0           #Information about the status of the electrolyzer. in numbers
+        ts['H20 [kg/dt]'] = 0.0           #Required amount of water.
+        ts['Oxygen [kg/dt]'] = 0.0        # Oxygen production kg/dt
+        ts['cooling Water [kg/dt]'] = 0.0 #Required cooling water. kg/dt
+        ts['Heat Cell [%]'] = 0.0       #Percentage share of Heatcell.
+        ts['heat system [%]'] = 0.0     #Percentage share of Heatsystem.
+        ts['electrolyzer {%]'] = 0.0    #Percentage share of electrolyzer.
+        ts['gasdrying {%]'] = 0.0       #Percentage share of gasdrying.
+        ts['electronics [%]'] = 0.0     #Percentage share of electronics.
+        ts['pump [%]'] = 0.0            #Percentage share of pump.
+        ts['compression [%]'] = 0.0     #Percentage share of compression.
+        ts['efficiency [%]'] = 0.0     #efficency without compression
+        ts['efficency _c [%]'] = 0.0 #efficency with compression
+        ts['Electrolyzer' ] = 0.0   #Required amount of electricity.
         
         
 
-        for i in range(len(ts.index)): #Syntax überprüfen! 
+        for i in range(len(ts.index)): 
             #-----------------------------------------------------------------------------------------
             #power dc
             if ts.loc[ts.index[i], 'P_ac'] > 0:
@@ -644,29 +648,22 @@ class ElectrolysisMoritz:
             else:   
                 ts.loc[ts.index[i], 'P_in [KW]'] = 0
 
-        # damit der Elektrolyseur immer aus dem coldstandby hochfährt
+        # So that the electrolyzer always starts up from cold standby.
         ts.loc[ts.index[0], 'P_ac']=0
         ts.loc[ts.index[0], 'P_in [KW]']=0
         ts.loc[ts.index[0], 'P_in without losses [KW]']=0
             
         
-        for i in range(len(ts.index)): #Syntax überprüfen! 
+        for i in range(len(ts.index)): 
             #-----------------------------------------------------------------------------------------
-            #power dc
-            # if ts.loc[ts.index[i], 'P_ac'] > 0:
-            #     ts.loc[ts.index[i], 'P_in [KW]'] = round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
-            #     ts.loc[ts.index[i], 'P_in without losses [KW]']=round(self.power_dc(ts.loc[ts.index[i], 'P_ac']),2)
-            # else:   
-            #     ts.loc[ts.index[i], 'P_in [KW]'] = 0
-                
-            #status codes
+           
             ts = self.status_codes(ts) 
             
-            # komtrolliert ob in der spalte status die zahl 4 steht (production)
+            # Checks if the number 4 is present in the 'status' column (production).
             if ts.loc[ts.index[i], 'status'] == 'production':
 
                 
-                #wenn die Eingangsleistung kleiner als p_elektrolyseur ist
+                #If the input power is less than the electrolyzer power.
                 if ts.loc[ts.index[i], 'P_in [KW]'] <= self.P_nominal:
                     #----------------------------------------------------------------------------------------------------------------
                     #output
@@ -675,7 +672,7 @@ class ElectrolysisMoritz:
                     hydrogen_production=self.run(ts.loc[ts.index[i], 'P_in [KW]'])
                     ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'] = round(hydrogen_production,2)
                     
-                    #H20  kg/dt
+                    #H20  kg/dt # Input
                     H2O=self.calc_H2O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                     ts.loc[ts.index[i], 'H20 [kg/dt]'] = round(H2O,2)
                     
@@ -728,7 +725,7 @@ class ElectrolysisMoritz:
                     ts.loc[ts.index[i], 'efficency _c [%]'] = round(efficency_with_compression,2)
                     #---------------------------------------------------------------------------------------------------------------------------------------------
     
-                #wenn die Eingangsleistung größer als p_eletrolyseur ist
+                #If the input power is greater than the electrolyzer power
                 else:
                     #----------------------------------------------------------------------------------------------------------------
                     #output
@@ -741,7 +738,7 @@ class ElectrolysisMoritz:
                     surplus_electricity=ts.loc[ts.index[i], 'P_in [KW]'] - self.P_nominal
                     ts.loc[ts.index[i], 'surplus electricity [kW]'] = round(surplus_electricity,2)
 
-                    #H20  kg/dt
+                    #H20  kg/dt  #Input
                     H2O=self.calc_H2O_mfr(ts.loc[ts.index[i], 'hydrogen production [Kg/dt]'])
                     ts.loc[ts.index[i], 'H20 [kg/dt]'] = round(H2O,2)
                     
@@ -801,7 +798,7 @@ class ElectrolysisMoritz:
                     ts.loc[ts.index[i], 'Electrolyzer' ]=round(self.P_nominal+(ts.loc[ts.index[i], 'P_in without losses [KW]']-ts.loc[ts.index[i], 'P_in [KW]']),2)
                 
                 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                #pump, gasdrying,compression wird von dem nächsten zeitschritt abgezogen
+                #Deducts pump, gas drying, and compression from the next time step.
                 if i< (len(ts.index)-1):
                     
                     ts.loc[ts.index[i + 1], 'P_in [KW]'] = round(ts.loc[ts.index[i + 1], 'P_in [KW]'] - (pump_KW + compression_KW  + gasdrying_KW),2) 
@@ -809,7 +806,7 @@ class ElectrolysisMoritz:
                     if ts.loc[ts.index[i + 1], 'P_in [KW]']<=0:
                         ts.loc[ts.index[i + 1], 'P_in [KW]'] =0
              #----------------------------------------------------------------------------------------------------------------------------------------------------------
-            #hochfahren
+            #Startup
             elif ts.loc[ts.index[i], 'status'] == 'booting':
                 ts.loc[ts.index[i], 'surplus electricity [kW]'] = ts.loc[ts.index[i], 'P_in [KW]'] - 0.0085*self.P_nominal
                 #ts.loc[ts.index[i], 'Electrolyzer' ]=round((ts.loc[ts.index[i], 'P_in without losses [KW]']-ts.loc[ts.index[i], 'P_in [KW]']),2)
@@ -823,12 +820,12 @@ class ElectrolysisMoritz:
 
             
         #-----------------------------------------------------------------------------------------------------------------------
-        #Wasserstoffproduktion/Volumenberechnung kompremierter Wasserstoff
+        #Hydrogen production/volume calculation of compressed hydrogen.
         self.h2_production_calc(ts)
         #-------------------------------------------------------------------------------------------------------------------------
-        #setzt efficency_c auf 0 wenn p2=0 ist
+        #Sets efficiency_c to 0 if p2 equals 0.
         if self.p2 == 0:
-        # Setze die Spalten auf 0.0
+        # Set the columns to 0.0
             ts['efficency _c [%]'] = 0.0
 
         #-----------------------------------------------------------------------------------------
@@ -838,7 +835,7 @@ class ElectrolysisMoritz:
         #----------------------------------------------------------------------------
         return ts
         
-    def value_for_timestamp(self, timestamp): # in arbeit
+    def value_for_timestamp(self, timestamp): 
 
         """
         Info
@@ -873,7 +870,7 @@ class ElectrolysisMoritz:
                 + "Stringformat: YYYY-MM-DD hh:mm:ss"
             )
 
-    def observations_for_timestamp(self, timestamp): # in arbeit
+    def observations_for_timestamp(self, timestamp):
 
         """
         Info
