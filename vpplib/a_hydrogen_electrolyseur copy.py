@@ -11,14 +11,11 @@ from scipy.optimize import fsolve
 class ElectrolysisMoritz:
     
     def __init__(self,P_elektrolyseur_,unit_P,dt_1,unit_dt,p2,production_H2_,unit_production_H2):
-        
-        #P_elektrolyseur_       :Electrolyzer power not yet converted.
-        #unit_P                 :Unit Elektrolyzer
-        #dt_1                   :Timestep not yet converted
-        #unit_dt                :Unit Timestep
-        #p2                     :Compression pressure
-        #production_H2_         :Hydrogen mass to be produced (time calculation).
-        #unit_production_H2     : Unit Hydrogen mass to be produced (time calculation)
+        #
+
+
+
+
 
 
         # Constants
