@@ -14,7 +14,7 @@ ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib
 ts['P_ac'] = round(ts['P_ac']/100,2)
 
 
-electrolyzer = ElectrolysisMoritz("1.5","mw","15","m","750","0","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, Druck in bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
+electrolyzer = ElectrolysisMoritz("1.5","mw","15","m","750","20","kg")  #Elektrolyseur-Größe,Einheit Elektrolyseur,  dt, Einheit zeit, Druck in bar, benötigte Wasserstoffmenge, Einheit Wasserstoffmenge
 
 #Auführen des Elektrolyseurs
 electrolyzer.prepare_timeseries(ts)
