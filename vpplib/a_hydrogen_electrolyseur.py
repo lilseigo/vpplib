@@ -93,19 +93,19 @@ class ElectrolysisMoritz:
         
         if self.unit_dt.lower() =="s": # second
             self.dt=self.dt_1/60
-            self.dt_2="Sekunde/n"
+            self.dt_2="seconds"
             
         elif self.unit_dt.lower() =="m": # minute
             self.dt=self.dt_1
-            self.dt_2="Minute/n"
+            self.dt_2="Minutes"
             
         elif self.unit_dt.lower() =="h": # hour
             self.dt=self.dt_1*60
-            self.dt_2="Stunde/n"
+            self.dt_2="hours"
             
         elif self.unit_dt.lower() =="d": # days
             self.dt=self.dt_1*60*24
-            self.dt_2="Tag/e"
+            self.dt_2="Days"
             
         else:
            raise ValueError("Please verify the unit of time! Currently, the options are S (seconds), M (minutes), H (hours), D (days)") 
@@ -617,8 +617,8 @@ class ElectrolysisMoritz:
     def prepare_timeseries(self, ts):
         
         
-        ts['P_in without losses [KW]'] = 0.0        # Input power from the electrical grid.
-        ts['P_in [KW]'] = 0.0                      #Input power from the electrical grid including losses from the last time step
+        ts['P_in without losses [KW]'] = 0.0        # Input power minus DC power. kW
+        ts['P_in [KW]'] = 0.0                      #Input power minus DC power. including losses from the last time step kW
         ts['hydrogen production [Kg/dt]'] = 0.0  # hydrogen production [Kg/dt]
         ts['surplus electricity [kW]'] = 0.0  #Excess energy. kW
         ts['status'] = 0.0                 #Information about the status of the electrolyzer.
