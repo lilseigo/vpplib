@@ -48,15 +48,15 @@ class ElectrolysisMoritz:
         self.kontrolle() #Checks the input and provides an error message if necessary
         
         self.P_nominal = self.P_elektrolyseur    #kW
-        self.P_min = self.P_nominal * 0.1   #kW
-        self.P_max = self.P_nominal         #kW
+        self.P_min = self.P_nominal * 0.1   #kW   minimum power Elektrolyzer
+        self.P_max = self.P_nominal         #kW   maximum power Elektrolyzer
         
         # Stack parameters
         self.n_cells = 56  # Number of cells
         self.cell_area = 2500  # [cm^2] Cell active area
         self.max_current_density = 2.1  # [A/cm^2] max. current density #2 * self.cell_area
         self.temperature = 50  # [C] stack temperature
-        self.n_stacks = self.P_nominal/self.stack_nominal()
+        self.n_stacks = self.P_nominal/self.stack_nominal() # number of stacks
 
         self.p_atmo = 101325 #2000000  # (Pa) atmospheric pressure / pressure of water
         self.p_anode = self.p_atmo  # (Pa) pressure at anode, assumed atmo
@@ -626,8 +626,8 @@ class ElectrolysisMoritz:
     def prepare_timeseries(self, ts):
         
         
-        ts['P_in without losses [KW]'] = 0.0        # Input power minus DC power. kW
-        ts['P_in [KW]'] = 0.0                      #Input power minus DC power. including losses from the last time step kW
+        ts['P_in without losses [KW]'] = 0.0        # Input power minus DC power. [kW]
+        ts['P_in [KW]'] = 0.0                      #Input power minus DC power. including losses from the last time step [kW]
         ts['hydrogen production [Kg/dt]'] = 0.0  # hydrogen production [Kg/dt]
         ts['surplus electricity [kW]'] = 0.0  #Excess energy. kW
         ts['status'] = 0.0                 #Information about the status of the electrolyzer.
