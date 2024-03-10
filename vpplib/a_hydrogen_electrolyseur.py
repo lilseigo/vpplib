@@ -336,6 +336,7 @@ class ElectrolysisMoritz:
         :return:
         '''
         P_stack_nominal = round((self.create_polarization().iloc[504,0] * self.create_polarization().iloc[504,1]*self.n_cells) /1000) #in kW
+        
         return P_stack_nominal #KW
 
     def calculate_cell_current(self, P_dc): 
@@ -383,8 +384,12 @@ class ElectrolysisMoritz:
         f_eta = interp1d(relative_performance, eta)
 
         # Eigenverbrauch berechnen
+        #print(P_ac)
+        #print(P_nominal)
+        if P_nominal <P_ac: #Funktion hinzugefügt da probleme wenn die eingangsleistung gegen null geht
+            P_nominal=P_ac
         eta_interp = f_eta(P_ac / P_nominal)  # Interpoliere den eta-Wert
-
+        #print(eta_interp)
         P_electronics = P_ac * (1 - eta_interp)  # Berechne den Eigenverbrauch
 
         return P_electronics
@@ -394,8 +399,12 @@ class ElectrolysisMoritz:
         :param P_ac:
         :return:
         '''
+        #print(self.stack_nominal()/100)
         P_dc = P_ac - self.power_electronics(P_ac, self.stack_nominal()/100)
+
+        
         #P_dc = P_ac - self.power_electronics(P_ac, self.P_nominal/100)
+        
         return P_dc
 
     def run(self, P_dc):        
