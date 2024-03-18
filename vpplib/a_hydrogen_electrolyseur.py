@@ -371,7 +371,7 @@ class ElectrolysisMoritz:
 
         return eta_f
 
-    def power_electronics(self, P_nominal, P_ac):  
+    def power_electronics(self,P_ac, P_nominal):  
         '''
         P_nominal: Electrolyzer Size in kW
         P_ac: P_in [KW]
@@ -386,11 +386,11 @@ class ElectrolysisMoritz:
         # Eigenverbrauch berechnen
         #print(P_ac)
         #print(P_nominal)
-        if P_nominal <P_ac: #Funktion hinzugefügt da probleme wenn die eingangsleistung gegen null geht
-            P_nominal=P_ac
-        eta_interp = f_eta(P_ac / P_nominal)  # Interpoliere den eta-Wert
+        if P_ac <P_nominal: #Funktion hinzugefügt da probleme wenn die eingangsleistung gegen null geht
+            P_ac=P_nominal
+        eta_interp = f_eta(P_nominal / P_ac)  # Interpoliere den eta-Wert
         #print(eta_interp)
-        P_electronics = P_ac * (1 - eta_interp)  # Berechne den Eigenverbrauch
+        P_electronics = P_nominal * (1 - eta_interp)  # Berechne den Eigenverbrauch
 
         return P_electronics
 
