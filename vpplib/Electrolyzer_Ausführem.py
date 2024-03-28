@@ -1,14 +1,10 @@
 import pandas as pd
-from a_hydrogen_electrolyseur import ElectrolysisMoritz 
-
-
+from Electrolyzer import ElectrolysisMoritz 
 
 
 #Import der Eingangsleistung
 
-ts = pd.read_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_wind_energy_cologne.csv', sep=',', decimal='.',nrows=50)
-#ts = pd.read_csv(r"C:\Users\katri\vpplib\vpplib\a_wind_energy_cologne.csv", sep=',', decimal='.',nrows=100)
-#ts = pd.read_csv('a_wind_energy_cologne.csv',sep=',', decimal='.',nrows=20)
+ts = pd.read_csv('vpplib/Electrolyzer_Wind_Data.csv',sep=',', decimal='.',nrows=20)
 
 #Leistungsanpassung
 ts['P_ac'] = round(ts['P_ac']/100,2)
@@ -21,11 +17,10 @@ electrolyzer.prepare_timeseries(ts)
 print(ts)
 
 #CSV-Datei
-ts.to_csv(r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_output.csv', index=False)
-#ts.to_csv('a_output.csv', index=False)
+
+ts.to_csv('vpplib/Electrolyzer_output', index=False)
 #EXCEL-Datei
-# excel_file_path = r'C:\Users\Anwender\Documents\Masterprojekt\12345\vpplib\vpplib\a_output.xlsx'
-# ts.to_excel(excel_file_path, index=False)
+# ts.to_excel('vpplib/Electrolyzer_output', index=False)
 
 timestamp_int=10
 timestamp_str="2015-01-01 02:30:00+00:00"
