@@ -83,3 +83,4 @@ test_value_for_timestamp(electrolyzer, timestamp_str)
 
 test_observations_for_timestamp(electrolyzer, timestamp_int)
 test_observations_for_timestamp(electrolyzer,timestamp_str)
+
