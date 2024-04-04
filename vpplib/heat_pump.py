@@ -567,11 +567,12 @@ class HeatPump(Component):
         if self.is_running:
             return None
         else:
-            if self.is_valid_ramp_up(timestamp):
-                self.is_running = True
-                return True
-            else:
-                return False
+            # if self.is_valid_ramp_up(timestamp):
+            #     self.is_running = True
+            #     return True
+            # else:
+            #     return False
+            self.is_running = True
 
     def ramp_down(self, timestamp):
 
@@ -615,8 +616,9 @@ class HeatPump(Component):
         if not self.is_running:
             return None
         else:
-            if self.is_valid_ramp_down(timestamp):
-                self.is_running = False
-                return True
-            else:
-                return False
+            # if self.is_valid_ramp_down(timestamp):
+            #     self.is_running = False
+            #     return True
+            # else:
+            #     return False
+            self.is_running = False
